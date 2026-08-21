@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Support Chat – TicketPilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="user-dashboard.html" class="nav-item"><svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>Dashboard</a>
+      <a href="create-ticket.html" class="nav-item"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v6M7 10h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Create Ticket</a>
+      <a href="my-tickets.html" class="nav-item"><svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>My Tickets</a>
+      <a href="chat.html" class="nav-item active"><svg viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg>AI Chat</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="avatar">??</div><div class="sidebar-user-info"><div class="sidebar-user-name">Loading…</div><div class="sidebar-user-role">Customer</div></div></div>
+      <a href="profile.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;">Profile</a>
+      <a href="settings.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;">Settings</a>
+      <a href="#" style="display:flex;align-items:center;gap:8px;color:#F87171;font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;" onclick="window.logout(); return false;">Sign out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb">
+          <a href="user-dashboard.html" style="color:var(--text-muted)">Dashboard</a>
+          <span class="breadcrumb-sep">/</span>
+          <span class="topbar-title">AI Support Chat</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="avatar avatar-sm" onclick="location.href='profile.html'" style="cursor:pointer;">??</div>
+      </div>
+    </header>
+
+    <div class="page-body" style="padding-bottom:0;">
+      <div class="chat-container" id="chat-container">
+
+        <!-- Chat header -->
+        <div class="chat-header">
+          <div style="position:relative;display:inline-block;">
+            <div class="chat-bot-avatar">🤖</div>
+            <div class="chat-status"></div>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:.95rem;">TicketPilot Assistant</div>
+            <div style="font-size:.75rem;color:var(--text-muted);">AI-powered · Always available</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <span style="font-size:.72rem;background:var(--status-resolved-bg);color:var(--status-resolved-text);border:1px solid var(--status-resolved-border);padding:3px 10px;border-radius:999px;font-weight:600;">● Online</span>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chat-messages">
+          <!-- Initial bot message -->
+          <div class="chat-msg bot">
+            <div class="msg-avatar chat-bot-avatar" style="width:32px;height:32px;font-size:.9rem;flex-shrink:0;">🤖</div>
+            <div>
+              <div class="msg-bubble">
+                Hi <strong id="chat-greet-name">there</strong>! I'm your AI support assistant. I can help you troubleshoot issues, check ticket status, or create a new ticket.<br/><br/>What can I help you with today?
+              </div>
+              <div class="chat-quick-actions" style="margin-top:8px;">
+                <button class="chat-quick-btn" onclick="quickAction('I have a technical issue')">🔧 Report an Issue</button>
+                <button class="chat-quick-btn" onclick="quickAction('Check my ticket status')">🔍 Check Ticket Status</button>
+                <button class="chat-quick-btn" onclick="quickAction('Create a new ticket')">➕ Create Ticket</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="chat-input-area">
+          <div class="chat-input-wrap">
+            <textarea id="chat-input" placeholder="Type your message…" rows="1" onkeydown="handleEnter(event)" oninput="autoResize(this)"></textarea>
+          </div>
+          <button class="chat-send-btn" onclick="sendMessage()" id="send-btn">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+// ── Real AI backend integration ──────────────────────────────────
+async function getAIResponse(userMessage) {
+  try {
+    const res = await fetch('http://localhost:5001/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage })
+    });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const data = await res.json();
+    return data.reply;
+  } catch (err) {
+    console.error('[TicketAI] Backend error:', err);
+    return "Sorry, I'm having trouble connecting to the AI assistant right now. Please make sure the backend server is running.";
+  }
+}
+
+function addBotMessage(text, withQuickActions = null) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot';
+  div.innerHTML = `
+    <div class="msg-avatar chat-bot-avatar" style="width:32px;height:32px;font-size:.9rem;flex-shrink:0;">🤖</div>
+    <div>
+      <div class="msg-bubble">${text.replace(/\n/g,'<br/>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
+    </div>`;
+  msgs.appendChild(div);
+  if (withQuickActions) addQuickActions(withQuickActions);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg user';
+  div.innerHTML = `<div class="avatar avatar-sm" id="user-chat-avatar">??</div><div class="msg-bubble">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot'; div.id = 'typing-indicator';
+  div.innerHTML = `<div class="msg-avatar chat-bot-avatar" style="width:32px;height:32px;font-size:.9rem;flex-shrink:0;">🤖</div>
+    <div class="msg-bubble" style="display:flex;gap:4px;align-items:center;padding:12px 16px;">
+      <span style="width:8px;height:8px;background:var(--text-muted);border-radius:50%;animation:bounce .6s infinite;display:block;"></span>
+      <span style="width:8px;height:8px;background:var(--text-muted);border-radius:50%;animation:bounce .6s .15s infinite;display:block;"></span>
+      <span style="width:8px;height:8px;background:var(--text-muted);border-radius:50%;animation:bounce .6s .3s infinite;display:block;"></span>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addQuickActions(labels) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-left:42px;';
+  div.innerHTML = labels.map(l => `<button class="chat-quick-btn" onclick="quickAction('${l}')">${l}</button>`).join('');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = '';
+
+  // Disable input while waiting for backend response
+  input.disabled = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  addUserMessage(text);
+  addTypingIndicator();
+
+  // Await real AI response — typing indicator stays visible
+  const response = await getAIResponse(text);
+
+  document.getElementById('typing-indicator')?.remove();
+  if (response) addBotMessage(response);
+
+  // Re-enable input
+  input.disabled = false;
+  if (sendBtn) sendBtn.disabled = false;
+  input.focus();
+}
+
+function quickAction(text) {
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+
+function handleEnter(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+</script>
+
+<style>
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+</style>
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+// Personalize greeting
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const u = JSON.parse(localStorage.getItem('ticketai_user') || '{}');
+    const first = (u.name || '').split(' ')[0] || 'there';
+    const greet = document.getElementById('chat-greet-name');
+    if (greet) greet.textContent = first;
+    // Also update user-side chat bubble initials
+    const initials = u.name ? (u.name.trim().split(/\s+/).length > 1
+      ? (u.name[0] + u.name.trim().split(/\s+/).pop()[0]).toUpperCase()
+      : u.name.slice(0,2).toUpperCase()) : '??';
+    document.querySelectorAll('#user-chat-avatar').forEach(el => el.textContent = initials);
+  } catch(e) {}
+});
+</script>
+</body>
+</html>

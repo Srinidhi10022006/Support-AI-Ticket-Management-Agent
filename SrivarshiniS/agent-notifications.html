@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications – TicketPilot Agent</title>
+  <meta name="description" content="Agent notifications — new assignments, customer replies, SLA warnings, and reassignment alerts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <style>
+    .notif-type-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .notif-type-btn {
+      padding:5px 14px;
+      border-radius:var(--radius-full);
+      font-size:.8rem;
+      font-weight:600;
+      border:1.5px solid var(--border);
+      background:var(--surface-2);
+      color:var(--text-secondary);
+      cursor:pointer;
+      transition:var(--transition);
+    }
+    .notif-type-btn:hover { border-color:var(--border-strong); color:var(--text-primary); }
+    .notif-type-btn.active { border-color:var(--accent); background:var(--accent-light); color:var(--accent); }
+
+    .notif-card {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+      padding:16px 18px;
+      display:flex;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:8px;
+      cursor:pointer;
+      transition:all .18s;
+      position:relative;
+    }
+    .notif-card:hover { border-color:var(--border-strong); box-shadow:var(--shadow-sm); }
+    .notif-card.unread { background:rgba(29,158,117,0.03); }
+    .notif-card.unread::before {
+      content:'';
+      position:absolute;
+      left:0; top:18px; bottom:18px;
+      width:3px;
+      background:var(--accent);
+      border-radius:0 2px 2px 0;
+    }
+    .notif-card-icon {
+      width:40px; height:40px;
+      border-radius:var(--radius-md);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+      font-size:1rem;
+    }
+    .notif-card-body { flex:1; min-width:0; }
+    .notif-card-title { font-size:.875rem; font-weight:600; color:var(--text-primary); margin-bottom:3px; }
+    .notif-card-sub { font-size:.8rem; color:var(--text-secondary); line-height:1.45; }
+    .notif-card-time { font-size:.72rem; color:var(--text-muted); margin-top:5px; display:flex; align-items:center; gap:5px; }
+    .notif-card-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+    .unread-dot { width:9px; height:9px; border-radius:50%; background:var(--accent); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Agent Panel</span>
+      <a href="agent-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="agent-queue.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Ticket Queue
+        <span class="nav-badge">12</span>
+      </a>
+      <a href="agent-performance.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="12" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="8" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="4" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+        Performance
+      </a>
+      <span class="nav-section-label">Account</span>
+      <a href="agent-notifications.html" class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 016 6c0 2-1 4-2 5l1 3H5l1-3C5 14 4 12 4 8a6 6 0 016-6z" stroke="currentColor" stroke-width="1.5"/><path d="M8 16a2 2 0 004 0" stroke="currentColor" stroke-width="1.5"/></svg>
+        Notifications
+        <span class="nav-badge" style="background:#F87171;" id="sidebar-unread">4</span>
+      </a>
+      <a href="agent-settings.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M10 1v2M10 17v2M3.22 3.22l1.42 1.42M15.36 15.36l1.42 1.42M1 10h2M17 10h2M3.22 16.78l1.42-1.42M15.36 4.64l1.42-1.42" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Settings
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);" data-user-initials>MA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>Mike Adams</div>
+          <div class="sidebar-user-role" data-user-role>Support Agent · Network</div>
+        </div>
+      </div>
+      <a href="#" style="display:flex;align-items:center;gap:8px;color:#F87171;font-size:.78rem;padding:5px 8px;border-radius:var(--radius);margin-top:4px;text-decoration:none;" onclick="window.logout(); return false;">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M8 5l-5 5 5 5M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Notifications</div>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme" onclick="window.toggleDarkMode()">
+          <span class="icon-sun"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span class="icon-moon"><svg viewBox="0 0 20 20" fill="none"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="markAllRead()" id="mark-all-btn">Mark all as read</button>
+        <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);" data-user-initials>MA</div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Notifications</h2>
+          <p>Stay on top of ticket assignments, customer replies, and SLA alerts.</p>
+        </div>
+        <div class="page-header-actions">
+          <span class="badge badge-sentiment-negative" style="font-size:.82rem;padding:5px 12px;" id="unread-header-badge">4 unread</span>
+        </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="notif-type-tabs">
+        <button class="notif-type-btn active" onclick="filterNotifs('all',this)">All <span class="tab-count" style="margin-left:4px;" id="count-all">7</span></button>
+        <button class="notif-type-btn" onclick="filterNotifs('sla',this)">⚠️ SLA Alert <span class="tab-count" style="margin-left:4px;" id="count-sla">1</span></button>
+        <button class="notif-type-btn" onclick="filterNotifs('assigned',this)">📋 Assigned <span class="tab-count" style="margin-left:4px;" id="count-assigned">2</span></button>
+        <button class="notif-type-btn" onclick="filterNotifs('reply',this)">💬 Customer Reply <span class="tab-count" style="margin-left:4px;" id="count-reply">2</span></button>
+        <button class="notif-type-btn" onclick="filterNotifs('reassign',this)">🔀 Reassigned <span class="tab-count" style="margin-left:4px;" id="count-reassign">1</span></button>
+        <button class="notif-type-btn" onclick="filterNotifs('resolved',this)">✅ Resolved <span class="tab-count" style="margin-left:4px;" id="count-resolved">1</span></button>
+      </div>
+
+      <div id="notif-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+const currentUser = window.requireAuth(['agent', 'admin']);
+if (!currentUser) throw new Error('Unauthorized');
+
+// In-memory notification list — derived from API + real-time socket events
+let NOTIFS = [];
+let currentFilter = 'all';
+
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ''; }
+
+function addNotif(notif) {
+  NOTIFS.unshift({ id: Date.now() + Math.random(), unread: true, ...notif });
+  renderNotifs();
+  updateBadge();
+}
+
+function ticketToNotif(ticket, type) {
+  const pri = (ticket.priority || 'medium').toLowerCase();
+  const icons = { sla: '⚠️', assigned: '📋', reply: '💬', resolved: '✅', created: '🆕', statusChanged: '🔄' };
+  const colors = { sla: { bg: 'rgba(239,68,68,0.12)', color: '#F87171' }, assigned: { bg: 'rgba(96,165,250,0.12)', color: '#60A5FA' }, reply: { bg: 'rgba(167,139,250,0.12)', color: '#A78BFA' }, resolved: { bg: 'rgba(74,222,128,0.12)', color: '#4ADE80' }, created: { bg: 'rgba(29,158,117,0.12)', color: 'var(--accent)' }, statusChanged: { bg: 'rgba(251,191,36,0.12)', color: '#FBBF24' } };
+  const { bg, color } = colors[type] || colors.assigned;
+  const id = ticket.ticketId || ticket._id || ticket.id;
+  const title = ticket.title || 'Ticket';
+  return {
+    type,
+    icon: icons[type] || '📋',
+    bg, color,
+    title: type === 'resolved' ? `${id} Marked Resolved` : type === 'reply' ? `Customer Replied on ${id}` : type === 'sla' ? `SLA Alert — ${id}` : type === 'created' ? `New Ticket Created — ${id}` : `${cap(type)} — ${id}`,
+    sub: title,
+    time: 'Just now',
+    href: `agent-ticket-detail.html?id=${ticket._id || id}`,
+  };
+}
+
+async function loadInitialNotifs() {
+  try {
+    const data = await window.apiRequest('/tickets?limit=20&sort=-createdAt', 'GET');
+    const tickets = data.tickets || [];
+    NOTIFS = [];
+    tickets.forEach(t => {
+      const status = (t.status || '').toLowerCase();
+      const isOpen = !['resolved', 'closed'].includes(status);
+      const isMine = t.assignedAgentId && String(t.assignedAgentId) === String(currentUser.id || currentUser._id || '');
+      // SLA alerts for mine or unassigned open tickets
+      if (isOpen && t.slaDeadline) {
+        const remaining = new Date(t.slaDeadline) - Date.now();
+        if (remaining < 7200000) {
+          NOTIFS.push({ id: 'sla-' + (t._id || t.id), type: 'sla', unread: remaining < 3600000, icon: '⚠️', bg: 'rgba(239,68,68,0.12)', color: '#F87171', title: `SLA ${remaining <= 0 ? 'Breached' : 'At Risk'} — ${t.ticketId || t._id}`, sub: t.title, time: window.relativeTime ? window.relativeTime(t.updatedAt || t.createdAt) : 'Recently', href: `agent-ticket-detail.html?id=${t._id}` });
+        }
+      }
+      // Assigned to me
+      if (isMine && isOpen) {
+        NOTIFS.push({ id: 'mine-' + (t._id || t.id), type: 'assigned', unread: false, icon: '📋', bg: 'rgba(96,165,250,0.12)', color: '#60A5FA', title: `Ticket Assigned to You — ${t.ticketId || t._id}`, sub: t.title, time: window.relativeTime ? window.relativeTime(t.createdAt) : 'Recently', href: `agent-ticket-detail.html?id=${t._id}` });
+      }
+    });
+    // Resolved tickets (recent)
+    tickets.filter(t => ['resolved', 'closed'].includes((t.status || '').toLowerCase()) && t.resolvedAt).slice(0, 3).forEach(t => {
+      NOTIFS.push({ id: 'res-' + (t._id || t.id), type: 'resolved', unread: false, icon: '✅', bg: 'rgba(74,222,128,0.12)', color: '#4ADE80', title: `${t.ticketId || t._id} Resolved`, sub: t.title, time: window.relativeTime ? window.relativeTime(t.resolvedAt) : 'Recently', href: `agent-ticket-detail.html?id=${t._id}` });
+    });
+    renderNotifs();
+    updateBadge();
+    updateCounts();
+  } catch (e) {
+    console.warn('Could not load notifications from API', e);
+    renderNotifs();
+  }
+}
+
+function filterNotifs(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.notif-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotifs();
+}
+
+function renderNotifs() {
+  const list = document.getElementById('notif-list');
+  const data = currentFilter === 'all' ? NOTIFS : NOTIFS.filter(n => n.type === currentFilter);
+
+  if (!data.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">🔔</div>
+      <h3>No notifications${currentFilter !== 'all' ? ' in this category' : ''}</h3>
+      <p>You're all caught up!</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(n => `
+    <div class="notif-card ${n.unread ? 'unread' : ''}" onclick="readAndOpen('${n.id}', '${n.href}')">
+      <div class="notif-card-icon" style="background:${n.bg};color:${n.color};">${n.icon}</div>
+      <div class="notif-card-body">
+        <div class="notif-card-title">${n.title}</div>
+        <div class="notif-card-sub">${n.sub}</div>
+        <div class="notif-card-time">
+          🕐 ${n.time}
+          ${n.type === 'sla' ? '<span class="badge badge-critical" style="font-size:.65rem;margin-left:4px;">Urgent</span>' : ''}
+        </div>
+      </div>
+      <div class="notif-card-actions">
+        ${n.unread ? '<div class="unread-dot"></div>' : ''}
+        <a href="${n.href}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();readNotif('${n.id}')">Open →</a>
+      </div>
+    </div>`).join('');
+}
+
+function readNotif(id) {
+  const n = NOTIFS.find(n => String(n.id) === String(id));
+  if (n) n.unread = false;
+  updateBadge();
+  renderNotifs();
+}
+
+function readAndOpen(id, href) {
+  readNotif(id);
+  location.href = href;
+}
+
+function markAllRead() {
+  NOTIFS.forEach(n => n.unread = false);
+  updateBadge();
+  renderNotifs();
+  showToast('All notifications marked as read', 'success');
+}
+
+function updateBadge() {
+  const unread = NOTIFS.filter(n => n.unread).length;
+  const badge = document.getElementById('unread-header-badge');
+  badge.textContent = unread + ' unread';
+  badge.style.display = unread ? '' : 'none';
+  const sidebarBadge = document.getElementById('sidebar-unread');
+  if (sidebarBadge) { sidebarBadge.textContent = unread; sidebarBadge.style.display = unread ? '' : 'none'; }
+  document.getElementById('mark-all-btn').style.display = unread ? '' : 'none';
+}
+
+function updateCounts() {
+  const types = ['sla', 'assigned', 'reply', 'reassign', 'resolved'];
+  types.forEach(t => {
+    const el = document.getElementById('count-' + t);
+    if (el) el.textContent = NOTIFS.filter(n => n.type === t).length;
+  });
+  const allEl = document.getElementById('count-all');
+  if (allEl) allEl.textContent = NOTIFS.length;
+}
+
+// Hydrate user initials
+const agentInitials = (currentUser.name || 'AG').split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase();
+document.querySelectorAll('[data-user-initials], .avatar.avatar-sm').forEach(el => el.textContent = agentInitials);
+document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = currentUser.name || 'Agent');
+document.querySelectorAll('[data-user-role]').forEach(el => el.textContent = `Support Agent${currentUser.department ? ' · ' + currentUser.department : ''}`);
+
+// Wire sign-out
+document.querySelectorAll('a[href="index.html"]').forEach(a => {
+  if ((a.textContent || '').trim().toLowerCase().includes('sign')) {
+    a.addEventListener('click', e => { e.preventDefault(); window.logout?.(); });
+  }
+});
+
+// Real-time socket notifications
+const socket = window.initSocket();
+if (socket) {
+  socket.on('ticket:created', ticket => {
+    addNotif(ticketToNotif(ticket, 'created'));
+    showToast(`🆕 New ticket: ${ticket.ticketId || ticket.id}`, 'info');
+  });
+  socket.on('ticket:statusChanged', payload => {
+    if (payload.resolvedBy === 'customer') {
+      addNotif({ type: 'resolved', icon: '✅', bg: 'rgba(74,222,128,0.12)', color: '#4ADE80', title: `Customer Resolved — ${payload.ticketId}`, sub: 'Customer confirmed issue resolved', time: 'Just now', href: `agent-ticket-detail.html?id=${payload.id}` });
+    } else {
+      addNotif({ type: 'statusChanged', icon: '🔄', bg: 'rgba(251,191,36,0.12)', color: '#FBBF24', title: `Status Changed — ${payload.ticketId}`, sub: `Now: ${payload.status}`, time: 'Just now', href: `agent-ticket-detail.html?id=${payload.id}` });
+    }
+  });
+  socket.on('ticket:newReply', payload => {
+    if (payload.reply && payload.reply.senderType === 'customer') {
+      addNotif({ type: 'reply', icon: '💬', bg: 'rgba(167,139,250,0.12)', color: '#A78BFA', title: `Customer Replied — ${payload.ticketId}`, sub: (payload.reply.message || '').substring(0, 80), time: 'Just now', href: `agent-ticket-detail.html?id=${payload.id}` });
+      showToast(`💬 New reply on ${payload.ticketId}`, 'info');
+    }
+  });
+}
+
+renderNotifs();
+updateBadge();
+loadInitialNotifs();
+initCommandPalette();
+</script>
+</body>
+</html>

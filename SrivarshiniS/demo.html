@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Demo – TicketPilot AI Support</title>
+  <meta name="description" content="Try the TicketPilot AI chatbot live. See real-time confidence scores, category prediction, and escalation in action — no login required." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    body { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    .demo-nav {
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    .demo-nav-brand { display:flex;align-items:center;gap:8px;text-decoration:none; }
+    .demo-nav-brand-icon { width:28px;height:28px;display:flex;align-items:center;justify-content:center; }
+
+    .demo-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      overflow: hidden;
+    }
+
+    /* ── Left: Chat Panel ── */
+    .demo-chat-panel {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .demo-chat-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .demo-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .demo-chips {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      background: var(--surface-2);
+      flex-shrink: 0;
+    }
+    .demo-chips-label { font-size: .72rem; color: var(--text-muted); font-weight: 600; width: 100%; margin-bottom: 4px; }
+    .demo-input-area {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .demo-input-wrap { flex: 1; }
+    .demo-input-wrap textarea {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: .875rem;
+      resize: none;
+      outline: none;
+      min-height: 44px;
+      max-height: 120px;
+      color: var(--text-primary);
+    }
+    .demo-input-wrap textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    /* ── Escalation panel in chat ── */
+    .escalation-card {
+      background: linear-gradient(135deg, rgba(29,158,117,0.08), rgba(14,165,233,0.05));
+      border: 1.5px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-size: .875rem;
+      line-height: 1.6;
+      max-width: 85%;
+      box-shadow: 0 0 20px rgba(29,158,117,0.10);
+    }
+    .escalation-stage {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .escalation-stage.revealed { opacity: 1; }
+    .escalation-stage-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .72rem; }
+    .escalation-ticket {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .escalation-ticket.revealed { opacity: 1; }
+    .ticket-num {
+      font-family: monospace;
+      font-size: .78rem;
+      color: var(--accent);
+      font-weight: 700;
+      background: var(--accent-light);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+    }
+
+    /* ── Right: AI Reasoning Panel ── */
+    .reasoning-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s, transform 0.35s;
+      transform: translateX(20px);
+    }
+    .reasoning-panel.visible {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+    }
+    .reasoning-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: var(--surface-2);
+    }
+    .reasoning-title {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .reasoning-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    .reasoning-section { display: flex; flex-direction: column; gap: 8px; }
+    .reasoning-section-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--text-muted); }
+
+    .category-display {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    .category-display.updating {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .ring-row {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0;
+    }
+
+    .kb-match {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: .8rem;
+      transition: border-color .2s;
+    }
+    .kb-match:hover { border-color: var(--border-strong); }
+    .kb-match-title { font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+    .kb-match-score { font-size: .72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .score-bar { height: 4px; background: var(--border); border-radius: 99px; flex: 1; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .8s ease; }
+
+    /* ── Empty state (before first message) ── */
+    .reasoning-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .reasoning-empty svg { width: 48px; height: 48px; opacity: .3; margin-bottom: 14px; }
+    .reasoning-empty p { font-size: .82rem; }
+
+    @media (max-width: 768px) {
+      .demo-body { grid-template-columns: 1fr; }
+      .reasoning-panel { display: none; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Demo Nav ── -->
+<div class="demo-nav">
+  <a href="landing.html" class="demo-nav-brand">
+    <div class="demo-nav-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+      <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span style="font-size:.9rem;font-weight:700;color:var(--text-primary);">TicketPilot</span>
+    <span id="demo-mode-badge" style="font-size:.72rem;color:var(--text-muted);background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:var(--radius-full);margin-left:6px;">Live Demo</span>
+  </a>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="icon-btn" id="demo-theme-btn" aria-label="Toggle theme" title="Toggle theme">
+      <svg viewBox="0 0 20 20" fill="none" class="icon-moon"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 20 20" fill="none" class="icon-sun" style="display:none;"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <a href="index.html" class="btn btn-ghost btn-sm" id="demo-auth-link">Sign in</a>
+    <a href="signup.html" class="btn btn-primary btn-sm" id="demo-cta-link">Get started</a>
+  </div>
+</div>
+
+<!-- ── Demo Body ── -->
+<div class="demo-body">
+
+  <!-- ── Left: Chat ── -->
+  <div class="demo-chat-panel">
+    <div class="demo-chat-header">
+      <div class="chat-bot-avatar" style="width:38px;height:38px;">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+        <div class="chat-online-dot"></div>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:.9rem;color:var(--text-primary);" id="demo-assistant-title">AI Support Assistant</div>
+        <div style="font-size:.72rem;color:var(--text-muted);" id="demo-assistant-subtitle">Demo Mode · AI-powered responses</div>
+      </div>
+      <div style="margin-left:auto;font-size:.75rem;color:var(--text-secondary);">Suggestions update as you type</div>
+    </div>
+
+    <div class="demo-chat-messages" id="demo-messages">
+      <!-- Welcome message -->
+      <div class="chat-msg bot">
+        <div class="chat-bot-avatar msg-avatar" style="width:30px;height:30px;">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+        </div>
+        <div>
+          <div class="msg-bubble">Hello! I'm the TicketPilot demo assistant. Ask me anything — I'll try to answer it instantly, or escalate to a human specialist if needed.<br/><br/>Try the example questions below, or type your own.</div>
+          <div class="chat-quick-actions" id="demo-chips">
+            <button class="chat-quick-btn" onclick="demoSend('How do I reset my password?')">How do I reset my password?</button>
+            <button class="chat-quick-btn" onclick="demoSend('My payment failed')">My payment failed</button>
+            <button class="chat-quick-btn" onclick="demoSend('VPN keeps disconnecting')">VPN keeps disconnecting</button>
+            <button class="chat-quick-btn" onclick="demoSend('I need to dispute a charge')">Dispute a charge</button>
+            <button class="chat-quick-btn" onclick="demoSend('How do I upgrade my plan?')">Upgrade my plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-input-area">
+      <div class="demo-input-wrap">
+        <textarea id="demo-input" rows="1" placeholder="Ask me anything…" aria-label="Your message"></textarea>
+      </div>
+      <button class="chat-send-btn" id="demo-send-btn" aria-label="Send message">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M17 3L3 9l6 2 2 6 6-14z" fill="white"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Right: AI Reasoning ── -->
+  <div class="reasoning-panel" id="reasoning-panel">
+    <!-- Empty state (before first message) -->
+    <div class="reasoning-empty" id="reasoning-empty">
+      <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/><path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <p>Send a message to see the AI reasoning panel update in real time.</p>
+    </div>
+
+    <!-- Live reasoning content -->
+    <div id="reasoning-content" style="display:none;">
+      <div class="reasoning-header">
+        <div class="reasoning-title">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          AI Reasoning
+        </div>
+        <span class="badge badge-ai" style="animation: badgePulse 2s infinite;">Live</span>
+      </div>
+      <div class="reasoning-body">
+
+        <!-- Category prediction -->
+        <div class="reasoning-section">
+          <div class="reasoning-section-label">Predicted category</div>
+          <div class="category-display" id="r-category">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span id="r-category-text">Analyzing…</span>
+          </div>
+        </div>
+
+        <!-- Confidence ring -->
+        <div class="reasoning-section">
+          <div class="reasoning-section-label">Confidence score</div>
+          <div class="ring-row">
+            <div class="confidence-ring-wrap">
+              <div id="r-confidence-ring"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KB matches — planned feature -->
+        <div class="reasoning-section">
+          <div class="reasoning-section-label">Knowledge base retrieval</div>
+          <div style="background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius);padding:10px 12px;font-size:.78rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5M10 6h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Coming in the next phase — full KB retrieval with semantic search.
+          </div>
+        </div>
+
+        <!-- Decision -->
+        <div class="reasoning-section" id="r-decision-section" style="display:none;">
+          <div class="reasoning-section-label">AI decision</div>
+          <div id="r-decision"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+
+<script src="js/app.js"></script>
+<script>
+/* ════════════════════════════════════════════════
+   DEMO DATA
+════════════════════════════════════════════════ */
+const DEMO_KB = {
+  password:  { category: 'Account', conf: 96, color: '#4ADE80', matches: [
+    { title: 'Password reset guide', score: 0.96 },
+    { title: 'Account recovery options', score: 0.82 },
+    { title: 'Multi-factor authentication setup', score: 0.61 },
+  ]},
+  payment:   { category: 'Billing', conf: 34, color: '#F87171', escalate: true, matches: [
+    { title: 'Payment failure troubleshooting', score: 0.34 },
+    { title: 'Refund policy overview', score: 0.28 },
+    { title: 'Supported payment methods', score: 0.21 },
+  ]},
+  vpn:       { category: 'Network', conf: 78, color: '#FBBF24', matches: [
+    { title: 'VPN setup & troubleshooting guide', score: 0.78 },
+    { title: 'Network connectivity checklist', score: 0.65 },
+    { title: 'Remote access configuration', score: 0.52 },
+  ]},
+  dispute:   { category: 'Billing', conf: 29, color: '#F87171', escalate: true, matches: [
+    { title: 'Charge dispute process', score: 0.29 },
+    { title: 'Billing statement explained', score: 0.22 },
+    { title: 'Contact billing department', score: 0.18 },
+  ]},
+  upgrade:   { category: 'Account', conf: 88, color: '#1D9E75', matches: [
+    { title: 'Plan upgrade guide', score: 0.88 },
+    { title: 'Pricing comparison', score: 0.74 },
+    { title: 'Trial-to-paid conversion', score: 0.60 },
+  ]},
+};
+
+const DEMO_REPLIES = {
+  'how do i reset my password?': 'To reset your password:\n1. Go to the login page\n2. Click "Forgot password" below the form\n3. Enter your registered email address\n4. Check your inbox for a reset link (expires in 30 min)\n5. Create a new password — minimum 12 characters\n\nIf you don\'t receive the email within 5 minutes, check your spam folder.',
+  'my payment failed':           null, // escalate
+  'vpn keeps disconnecting':     'VPN disconnecting frequently is usually caused by:\n\n• Outdated VPN client — please update to the latest version\n• Firewall blocking UDP ports 1194/443 — check with your IT admin\n• Weak signal on Wi-Fi — try a wired connection\n• Session timeout — re-authenticate and set "Stay connected"\n\nStill disconnecting after these steps?',
+  'i need to dispute a charge':  null, // escalate
+  'how do i upgrade my plan?':   'You can upgrade your plan directly from your dashboard:\n\n1. Go to Account Settings → Billing\n2. Click "Change plan"\n3. Select your new plan\n4. Confirm payment details\n\nUpgrades are prorated — you\'ll only pay the difference for the remaining billing period.',
+};
+
+let messageCount = 0;
+let isProcessing = false;
+// Track the most recent exchange so button handlers have context
+let lastUserMessage = '';
+let lastAIData = null;
+
+function getSignedInUser() {
+  try { return JSON.parse(localStorage.getItem('ticketai_user') || 'null'); } catch (e) { return null; }
+}
+
+function getUserDisplayName(user) {
+  if (!user) return '';
+  return user.firstName || user.name || user.email || 'there';
+}
+
+function normalizeTicketStatus(status) {
+  const normalized = String(status || 'inprogress').toLowerCase().trim();
+  return ['open', 'inprogress', 'waiting', 'resolved', 'closed'].includes(normalized) ? normalized : 'inprogress';
+}
+
+function buildDemoAiSolution(categoryKey) {
+  const solutions = {
+    network: { category:'Network', dept:'Network Team', deptIcon:'📡', sla:'1-2 hours', steps:['Check if other devices can connect to the network.','Restart your router/switch by unplugging for 30 seconds.','Ensure your network cable is securely connected or try a different cable.','Run Windows Network Diagnostics: Right-click network icon → Troubleshoot.','Contact the Network Team if the issue persists after these steps.'] },
+    software: { category:'Software', dept:'IT Support', deptIcon:'💻', sla:'2-4 hours', steps:['Restart the application and your computer.','Check for pending software updates.','Clear the application cache or reinstall if needed.','Run as Administrator if permission issues occur.','Document the exact error message and share with IT Support.'] },
+    account: { category:'Account', dept:'IT Support', deptIcon:'🔑', sla:'30-60 min', steps:['Use the "Forgot Password" link on the login page.','Check your spam folder for the reset email.','Ensure you\'re using the correct email address.','Clear browser cookies and cache, then try again.','Contact IT Support if you still cannot access your account.'] },
+    hr: { category:'HR', dept:'Human Resources', deptIcon:'👥', sla:'1 business day', steps:['Check the HR portal for self-service options.','Review your employee handbook for relevant policies.','Submit your query through the HR helpdesk portal if available.','Contact your HR Business Partner directly for urgent matters.'] },
+    finance: { category:'Finance', dept:'Finance Team', deptIcon:'💰', sla:'4-8 hours', steps:['Review your payment confirmation email for reference number.','Check your bank statement for transaction details.','Log into the payment portal to verify transaction status.','Contact Finance with your reference number for investigation.'] },
+    default: { category:'General', dept:'IT Support', deptIcon:'🎧', sla:'2-4 hours', steps:['Restart your device and try again.','Ensure all recent updates are installed.','Check if others in your team are experiencing the same issue.','Document the steps to reproduce the problem.','Contact IT Support with detailed information.'] }
+  };
+  return solutions[categoryKey] || solutions.default;
+}
+
+function createRealTicketFromDemo(text, data) {
+  const user = getSignedInUser();
+  if (!user) return null;
+  const id = 'TKT-' + Math.random().toString(36).substr(2,6).toUpperCase();
+  const title = (text || 'AI support request').trim().slice(0, 80);
+  const category = data.category || 'General';
+  const priority = data.escalate ? 'high' : 'medium';
+  const catKeyMap = { Account:'account', Network:'network', Billing:'finance', General:'default' };
+  const aiCategoryKey = catKeyMap[category] || 'default';
+  const aiSolution = buildDemoAiSolution(aiCategoryKey);
+  const userEmail = user.email || '';
+  const ticket = {
+    id,
+    title,
+    subject: title,
+    description: text,
+    category,
+    aiCategoryKey,
+    aiSolution: {
+      category: aiSolution.category,
+      dept: aiSolution.dept,
+      deptIcon: aiSolution.deptIcon,
+      sla: aiSolution.sla,
+      steps: aiSolution.steps
+    },
+    aiClassification: { category, priority, sentiment: 'neutral' },
+    priority,
+    sentiment: 'neutral',
+    status: normalizeTicketStatus('inprogress'),
+    department: aiSolution.dept,
+    createdAt: new Date().toISOString(),
+    updated: 'Just now',
+    userId: userEmail,
+    userEmail,
+    messages: [{ role:'system', text:'Ticket created from Ask AI demo flow.', ts: new Date().toISOString() }]
+  };
+  try {
+    const existing = JSON.parse(localStorage.getItem('ticketai_tickets') || '[]');
+    existing.unshift(ticket);
+    localStorage.setItem('ticketai_tickets', JSON.stringify(existing));
+    localStorage.setItem('ticketai_pending', JSON.stringify({ id, title, desc: text, dept: aiSolution.dept }));
+  } catch (e) {}
+  return ticket;
+}
+
+function setupDemoMode() {
+  const params = new URLSearchParams(window.location.search);
+  const isInAppMode = params.get('mode') === 'app';
+  const user = getSignedInUser();
+  const displayName = getUserDisplayName(user);
+  const badge = document.getElementById('demo-mode-badge');
+  const navBrand = document.getElementById('demo-nav-brand');
+  const authLink = document.getElementById('demo-auth-link');
+  const ctaLink = document.getElementById('demo-cta-link');
+  const assistantTitle = document.getElementById('demo-assistant-title');
+  const assistantSubtitle = document.getElementById('demo-assistant-subtitle');
+
+  if (isInAppMode) {
+    if (badge) badge.textContent = displayName ? `Hi ${displayName}` : 'Ask AI';
+    if (navBrand) navBrand.setAttribute('href', 'user-dashboard.html');
+    if (authLink) { authLink.textContent = 'Back to dashboard'; authLink.setAttribute('href', 'user-dashboard.html'); }
+    if (ctaLink) { ctaLink.textContent = 'My tickets'; ctaLink.setAttribute('href', 'my-tickets.html'); }
+    if (assistantTitle) assistantTitle.textContent = displayName ? `AI Support Assistant · ${displayName}` : 'AI Support Assistant';
+    if (assistantSubtitle) assistantSubtitle.textContent = 'Real-time guidance and ticket creation';
+  }
+}
+
+setupDemoMode();
+
+/* ════════════════════════════════════════════════
+   REASONING PANEL
+════════════════════════════════════════════════ */
+function showReasoningPanel() {
+  const panel = document.getElementById('reasoning-panel');
+  panel.classList.add('visible');
+  document.getElementById('reasoning-empty').style.display    = 'none';
+  document.getElementById('reasoning-content').style.display  = 'block';
+}
+
+function updateReasoningCategory(text, updating) {
+  const el = document.getElementById('r-category');
+  const textEl = document.getElementById('r-category-text');
+  el.classList.toggle('updating', updating);
+  textEl.textContent = text;
+}
+
+function updateConfidenceRing(pct, color) {
+  const ringEl = document.getElementById('r-confidence-ring');
+  renderRing(ringEl, pct, color, 'Confidence', 'normal');
+}
+
+function updateKBMatches(matches) {
+  const el = document.getElementById('r-kb-matches');
+  el.innerHTML = matches.map(m => `
+    <div class="kb-match">
+      <div class="kb-match-title">${m.title}</div>
+      <div class="kb-match-score">
+        <div class="score-bar"><div class="score-fill" style="width:${Math.round(m.score*100)}%"></div></div>
+        <span>${Math.round(m.score*100)}%</span>
+      </div>
+    </div>`).join('');
+}
+
+function showDecision(isEscalate, category) {
+  const section = document.getElementById('r-decision-section');
+  const el = document.getElementById('r-decision');
+  section.style.display = 'block';
+  if (isEscalate) {
+    el.innerHTML = `<div style="background:rgba(248,113,113,0.10);border:1px solid rgba(248,113,113,0.25);border-radius:var(--radius);padding:10px 12px;font-size:.82rem;color:#F87171;display:flex;align-items:center;gap:8px;">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3L17.5 17H2.5L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      Confidence too low — escalating to human support
+    </div>`;
+  } else {
+    el.innerHTML = `<div style="background:rgba(74,222,128,0.10);border:1px solid rgba(74,222,128,0.25);border-radius:var(--radius);padding:10px 12px;font-size:.82rem;color:#4ADE80;display:flex;align-items:center;gap:8px;">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      High confidence — answering from knowledge base
+    </div>`;
+  }
+}
+
+/* ════════════════════════════════════════════════
+   REAL AI BACKEND
+════════════════════════════════════════════════ */
+async function getAIResponse(userMessage) {
+  try {
+    const res = await fetch('http://localhost:5001/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage })
+    });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    const json = await res.json();
+    // Return the full classification object; normalise missing fields gracefully
+    return {
+      reply:      json.reply      || "Sorry, I received an empty response. Please try again.",
+      category:   json.category   || 'General',
+      confidence: typeof json.confidence === 'number' ? json.confidence : 70,
+      escalate:   !!json.escalate
+    };
+  } catch (err) {
+    console.error('[TicketPilot Demo] Backend error:', err);
+    return {
+      reply:      "Sorry, I\u2019m having trouble connecting to the AI assistant right now. Please make sure the backend server is running.",
+      category:   'General',
+      confidence: 0,
+      escalate:   false
+    };
+  }
+}
+
+/* ════════════════════════════════════════════════
+   FEEDBACK BUTTON ACTIONS
+════════════════════════════════════════════════ */
+
+/**
+ * Shared helper: appends an escalation card + runs the stage-reveal animation.
+ * Used by both the auto-escalate path inside demoSend() and handleEscalateToHuman().
+ * @param {string}  userText   - The original user message (used as ticket title/desc)
+ * @param {object}  aiData     - { reply, category, confidence, escalate }
+ * @param {string}  [anchorId] - Optional ID of a button row to remove before rendering card
+ */
+function _renderEscalationCard(userText, aiData, anchorId) {
+  const messages = document.getElementById('demo-messages');
+
+  // Remove the button row (or typing indicator) if an anchor ID was provided
+  if (anchorId) {
+    const anchor = document.getElementById(anchorId);
+    if (anchor) anchor.remove();
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const isInAppMode = params.get('mode') === 'app';
+  const realTicket = isInAppMode ? createRealTicketFromDemo(userText, aiData) : null;
+  const ticketNum = realTicket
+    ? realTicket.id
+    : 'TKT-' + String(1000 + Math.floor(Math.random() * 900)).padStart(3, '0');
+
+  // Use a unique suffix per card so multiple cards can coexist in the DOM
+  const cardSuffix = Date.now();
+
+  const escCard = document.createElement('div');
+  escCard.className = 'chat-msg bot';
+  escCard.innerHTML = `
+    <div class="chat-bot-avatar msg-avatar" style="width:30px;height:30px;">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+    </div>
+    <div class="escalation-card">
+      <div class="escalation-stage" id="esc-1-${cardSuffix}">
+        <div class="escalation-stage-icon" style="background:rgba(251,191,36,0.15);color:#FBBF24;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <span style="color:var(--text-secondary);">Analyzing your request\u2026</span>
+      </div>
+      <div class="escalation-stage" id="esc-2-${cardSuffix}">
+        <div class="escalation-stage-icon" style="background:rgba(167,139,250,0.15);color:#A78BFA;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <span style="color:var(--text-secondary);">Category: <strong style="color:var(--text-primary);">${aiData.category}</strong></span>
+      </div>
+      <div class="escalation-stage" id="esc-3-${cardSuffix}">
+        <div class="escalation-stage-icon" style="background:rgba(248,113,113,0.15);color:#F87171;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 3L17.5 17H2.5L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <span style="color:var(--text-secondary);">Priority: <strong style="color:#F87171;">High</strong></span>
+      </div>
+      <div class="escalation-stage" id="esc-4-${cardSuffix}">
+        <div class="escalation-stage-icon" style="background:rgba(29,158,117,0.15);color:var(--accent);">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <span style="color:var(--text-secondary);">Creating your ticket\u2026</span>
+      </div>
+      <div class="escalation-ticket" id="esc-ticket-${cardSuffix}">
+        <div class="ticket-num">${ticketNum}</div>
+        <div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--text-primary);">${realTicket ? 'Ticket created in your account' : 'Ticket created successfully'}</div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px;">${realTicket ? 'You can view it on My Tickets and follow its progress.' : 'A specialist will respond within 2 business hours'}</div>
+        </div>
+        <div style="margin-left:auto;">
+          ${realTicket
+            ? `<a href="ticket-detail.html?id=${ticketNum}&created=true" class="badge badge-open" style="text-decoration:none;cursor:pointer;" title="View ticket">Open</a>`
+            : `<span class="badge badge-open">Open</span>`}
+        </div>
+      </div>
+    </div>`;
+  messages.appendChild(escCard);
+  messages.scrollTop = messages.scrollHeight;
+
+  // Stage reveals
+  const stages = [`esc-1-${cardSuffix}`, `esc-2-${cardSuffix}`, `esc-3-${cardSuffix}`, `esc-4-${cardSuffix}`];
+  stages.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('revealed');
+      messages.scrollTop = messages.scrollHeight;
+    }, i * 380);
+  });
+  setTimeout(() => {
+    const ticketEl = document.getElementById(`esc-ticket-${cardSuffix}`);
+    if (ticketEl) ticketEl.classList.add('revealed');
+    messages.scrollTop = messages.scrollHeight;
+    isProcessing = false;
+    if (window.showToast) {
+      showToast(
+        realTicket
+          ? `Ticket ${ticketNum} created and saved to your account.`
+          : `Ticket ${ticketNum} created \u2014 routed to ${aiData.category} team`,
+        'success'
+      );
+    }
+  }, stages.length * 380 + 200);
+}
+
+/**
+ * "That solved it" button handler.
+ * Appends a short closing message and disables both feedback buttons
+ * on the bubble that was clicked — no backend call.
+ */
+function handleSolvedIt(btnEl) {
+  if (isProcessing) return;
+
+  // Disable both buttons in this reply's action row
+  const row = btnEl.closest('div[data-feedback-row]') || btnEl.parentElement;
+  if (row) {
+    row.querySelectorAll('button').forEach(b => {
+      b.disabled = true;
+      b.style.opacity = '0.4';
+      b.style.cursor = 'default';
+      b.style.pointerEvents = 'none';
+    });
+  }
+
+  // Append closing bot message
+  const messages = document.getElementById('demo-messages');
+  messages.insertAdjacentHTML('beforeend', `
+    <div class="chat-msg bot">
+      <div class="chat-bot-avatar msg-avatar" style="width:30px;height:30px;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+      </div>
+      <div class="msg-bubble" style="display:flex;align-items:center;gap:8px;">
+        <span>\u2705</span>
+        <span>Glad that helped! Let me know if anything else comes up.</span>
+      </div>
+    </div>`);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+/**
+ * "I still need help" button handler.
+ * Triggers the full escalation card animation using the stored last-exchange
+ * context — no backend call.
+ */
+function handleEscalateToHuman(btnEl) {
+  if (isProcessing) return;
+  if (!lastUserMessage || !lastAIData) return; // safety guard
+
+  isProcessing = true;
+
+  // Disable both buttons on the originating reply bubble
+  const row = btnEl.closest('div[data-feedback-row]') || btnEl.parentElement;
+  if (row) {
+    row.querySelectorAll('button').forEach(b => {
+      b.disabled = true;
+      b.style.opacity = '0.4';
+      b.style.cursor = 'default';
+      b.style.pointerEvents = 'none';
+    });
+  }
+
+  // Update reasoning panel to show escalate decision
+  showDecision(true, lastAIData.category);
+
+  // Append a brief acknowledgement before the animation
+  const messages = document.getElementById('demo-messages');
+  messages.insertAdjacentHTML('beforeend', `
+    <div class="chat-msg bot" id="escalate-ack">
+      <div class="chat-bot-avatar msg-avatar" style="width:30px;height:30px;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+      </div>
+      <div class="msg-bubble">No problem \u2014 I\u2019ll connect you with a specialist now.</div>
+    </div>`);
+  messages.scrollTop = messages.scrollHeight;
+
+  // Short delay so the acknowledgement is readable before the card appears
+  setTimeout(() => {
+    _renderEscalationCard(lastUserMessage, lastAIData, 'escalate-ack');
+  }, 900);
+}
+
+/* ════════════════════════════════════════════════
+   SEND MESSAGE
+════════════════════════════════════════════════ */
+async function demoSend(prefill) {
+  if (isProcessing) return;
+  const input = document.getElementById('demo-input');
+  const text  = prefill || (input ? input.value.trim() : '');
+  if (!text) return;
+  if (input) input.value = '';
+  isProcessing = true;
+
+  messageCount++;
+  showReasoningPanel();
+
+  const messages = document.getElementById('demo-messages');
+
+  // ── User bubble ──────────────────────────────────────────────────
+  messages.insertAdjacentHTML('beforeend', `
+    <div class="chat-msg user">
+      <div class="msg-bubble">${escHtml(text)}</div>
+    </div>`);
+  messages.scrollTop = messages.scrollHeight;
+
+  // ── Reset reasoning panel to "analyzing" state ───────────────────
+  updateReasoningCategory('Analyzing\u2026', true);
+  updateConfidenceRing(0, 'var(--text-muted)');
+  document.getElementById('r-decision-section').style.display = 'none';
+
+  // ── Typing indicator ─────────────────────────────────────────────
+  const typingId = 'demo-typing-' + messageCount;
+  messages.insertAdjacentHTML('beforeend', `
+    <div class="chat-msg bot" id="${typingId}">
+      <div class="chat-bot-avatar msg-avatar" style="width:30px;height:30px;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+      </div>
+      <div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>`);
+  messages.scrollTop = messages.scrollHeight;
+
+  // ── Call the real backend (single call for ALL messages) ─────────
+  const data = await getAIResponse(text);
+  // data = { reply, category, confidence, escalate }
+
+  // Pick ring colour from real confidence value
+  const confColor = data.confidence >= 70 ? '#4ADE80'
+                  : data.confidence >= 40 ? '#FBBF24'
+                  : '#F87171';
+
+  // Update reasoning panel with real data
+  updateReasoningCategory(data.category, false);
+  updateConfidenceRing(data.confidence, confColor);
+  showDecision(data.escalate, data.category);
+
+  // ── Store last exchange for feedback button handlers ─────────────
+  lastUserMessage = text;
+  lastAIData = data;
+
+  // ── Branch on real escalate flag ─────────────────────────────────
+  if (data.escalate) {
+    // Remove typing indicator, then delegate to shared escalation card renderer
+    setTimeout(() => {
+      const typing = document.getElementById(typingId);
+      if (typing) typing.remove();
+      _renderEscalationCard(text, data);
+    }, 600); // brief pause so the reasoning panel update is visible first
+
+  } else {
+    // ── Direct answer ─────────────────────────────────────────────
+    const typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+
+    const formattedReply = data.reply
+      .replace(/\n/g, '<br/>')
+      .replace(/\d+\. /g, m => `<br/>${m}`);
+
+    // Each feedback row gets a unique ID so the handlers can locate and
+    // disable its buttons without touching other reply bubbles.
+    const feedbackRowId = 'feedback-row-' + messageCount;
+
+    messages.insertAdjacentHTML('beforeend', `
+      <div class="chat-msg bot">
+        <div class="chat-bot-avatar msg-avatar" style="width:30px;height:30px;">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+        </div>
+        <div>
+          <div class="msg-bubble">${formattedReply}</div>
+          <div id="${feedbackRowId}" data-feedback-row="1" style="margin-top:8px;display:flex;gap:6px;">
+            <button class="chat-quick-btn" onclick="handleSolvedIt(this)">&#x2705; That solved it</button>
+            <button class="chat-quick-btn" onclick="handleEscalateToHuman(this)">&#x1F64B; I still need help</button>
+          </div>
+        </div>
+      </div>`);
+    messages.scrollTop = messages.scrollHeight;
+    isProcessing = false;
+  }
+}
+
+/* ════════════════════════════════════════════════
+   INPUT HANDLING
+════════════════════════════════════════════════ */
+const demoInput = document.getElementById('demo-input');
+document.getElementById('demo-send-btn').addEventListener('click', () => demoSend());
+demoInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); demoSend(); }
+});
+demoInput.addEventListener('input', () => {
+  // Auto-resize textarea only — category prediction is driven by real backend data, not keystrokes
+  demoInput.style.height = 'auto';
+  demoInput.style.height = Math.min(demoInput.scrollHeight, 100) + 'px';
+});
+
+/* ── Theme toggle ── */
+document.getElementById('demo-theme-btn').addEventListener('click', () => {
+  toggleDarkMode();
+  const isLight = document.documentElement.classList.contains('light');
+  document.querySelector('#demo-theme-btn .icon-moon').style.display = isLight ? 'none' : '';
+  document.querySelector('#demo-theme-btn .icon-sun').style.display  = isLight ? '' : 'none';
+});
+</script>
+</body>
+</html>

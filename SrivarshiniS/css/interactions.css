@@ -1,0 +1,342 @@
+/* ====================================================
+   INTERACTIONS.CSS – Micro-interactions & Polish
+   Dark-first additive layer
+   ==================================================== */
+
+/* ── Global transitions ── */
+*, *::before, *::after {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Page fade-in ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.page-body    { animation: fadeInUp 0.35s ease both; }
+.login-card   { animation: fadeInUp 0.40s 0.05s ease both; }
+.guest-card   { animation: fadeInUp 0.40s 0.05s ease both; }
+.track-card   { animation: fadeInUp 0.40s 0.05s ease both; }
+
+/* Staggered stat cards */
+.stat-card:nth-child(1) { animation: fadeInUp 0.3s 0.05s ease both; }
+.stat-card:nth-child(2) { animation: fadeInUp 0.3s 0.10s ease both; }
+.stat-card:nth-child(3) { animation: fadeInUp 0.3s 0.15s ease both; }
+.stat-card:nth-child(4) { animation: fadeInUp 0.3s 0.20s ease both; }
+.stat-card:nth-child(5) { animation: fadeInUp 0.3s 0.25s ease both; }
+
+/* Staggered kanban cards */
+.kanban-card { animation: fadeInUp 0.25s ease both; }
+
+/* ── Buttons ── */
+.btn {
+  transition: background 0.16s, box-shadow 0.16s, transform 0.1s, border-color 0.16s, color 0.16s;
+  will-change: transform;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.96) translateY(1px) !important;
+  box-shadow: none !important;
+}
+
+/* ── Input glow-up on focus ── */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+  transform: translateY(-1px);
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s, background 0.18s;
+}
+
+/* ── Cards ── */
+.card {
+  transition: box-shadow 0.22s, border-color 0.22s, transform 0.22s;
+}
+
+/* ── Stat cards ── */
+.stat-card { transition: box-shadow 0.22s, transform 0.22s, border-color 0.22s; }
+.stat-card:hover { transform: translateY(-4px); }
+
+/* ── Ticket cards (customer dashboard) ── */
+.ticket-card {
+  transition: box-shadow 0.22s, border-color 0.22s, transform 0.18s;
+}
+.ticket-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+  cursor: pointer;
+}
+.ticket-card:active { transform: translateY(0); }
+
+/* ── Kanban cards ── */
+.kanban-card {
+  transition: box-shadow 0.18s, border-color 0.18s, transform 0.14s, opacity 0.18s;
+}
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* ── Icon buttons ── */
+.icon-btn, .navbar-icon-btn {
+  transition: background 0.15s, color 0.15s, transform 0.10s, border-color 0.15s;
+}
+.icon-btn:active, .navbar-icon-btn:active { transform: scale(0.88); }
+
+/* ── Filter pills ── */
+.filter-pill { transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.10s; }
+.filter-pill:active { transform: scale(0.95); }
+
+/* ── Badge pop (for dynamic updates) ── */
+@keyframes badgePop {
+  0%   { transform: scale(0.8); opacity: 0.6; }
+  60%  { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.badge-pop { animation: badgePop 0.3s ease both; }
+
+/* ── In-progress pulse ── */
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--status-inprogress-border); opacity: 1; }
+  50%       { box-shadow: 0 0 0 5px transparent; opacity: 0.85; }
+}
+.badge-inprogress { animation: statusPulse 2.6s ease-in-out infinite; }
+
+/* ── Confidence ring fill animation (triggered by JS class) ── */
+.ring-fill.animated {
+  animation: ringFill 1.2s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes ringFill {
+  from { stroke-dashoffset: 157; }
+  /* to value is set inline by JS */
+}
+
+/* ── Count-up animation (applied by JS IntersectionObserver) ── */
+.count-animated {
+  transition: color 0.3s;
+}
+
+/* ── Skeleton shimmer (dark mode) ── */
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+.skeleton {
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ── Spinner ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+.spinner-accent {
+  border-color: var(--accent-glow);
+  border-top-color: var(--accent);
+}
+
+/* ── Button loading state ── */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+}
+.btn-loading.btn-ghost::after,
+.btn-loading.btn-secondary::after {
+  border-color: var(--accent-glow);
+  border-top-color: var(--accent);
+}
+
+/* ── Chat messages slide in ── */
+@keyframes msgSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chat-msg { animation: msgSlideIn 0.22s ease both; }
+
+/* ── Chat send button ── */
+.chat-send-btn { transition: background 0.15s, transform 0.10s; }
+.chat-send-btn:active { transform: scale(0.90) !important; }
+
+/* ── Chat quick buttons ── */
+.chat-quick-btn { transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.10s; }
+.chat-quick-btn:hover { transform: translateY(-1px); }
+.chat-quick-btn:active { transform: scale(0.94); }
+
+/* ── Chat FAB ── */
+.chat-fab { transition: background 0.18s, transform 0.18s, box-shadow 0.18s; }
+.chat-fab:hover { transform: scale(1.10) !important; }
+.chat-fab:active { transform: scale(0.94) !important; }
+
+/* ── Chat panel slide-up ── */
+.chat-panel {
+  transition: transform 0.26s cubic-bezier(0.4,0,0.2,1), opacity 0.22s;
+}
+
+/* ── Command palette reveal ── */
+.cmd-overlay { transition: opacity 0.16s; }
+.cmd-palette { transition: transform 0.20s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── Tab transition ── */
+.tab-btn { transition: color 0.16s, border-color 0.16s; }
+.tab-panel { animation: fadeIn 0.22s ease both; }
+
+/* ── Timeline step dot ── */
+.timeline-dot { transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, color 0.25s; }
+.timeline-step::after { transition: background 0.5s; }
+
+/* ── Role option cards ── */
+.role-option {
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.14s;
+}
+.role-option:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(29,158,117,0.15); }
+.role-option.selected { transform: translateY(-2px); }
+
+/* ── Category / priority pills (create ticket) ── */
+.cat-option, .pri-option {
+  transition: border-color 0.16s, background 0.16s, color 0.16s, transform 0.12s;
+}
+.cat-option:hover, .pri-option:hover { transform: translateY(-1px); }
+.cat-option:active, .pri-option:active { transform: scale(0.96); }
+
+/* ── Dropdown reveal ── */
+@keyframes dropdownReveal {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.navbar-dropdown.open { animation: dropdownReveal 0.18s ease both; }
+
+/* ── Nav items ── */
+.nav-item { transition: background 0.15s, color 0.15s; }
+.public-nav-link { transition: color 0.15s, background 0.15s; }
+
+/* ── Hero elements stagger (landing page) ── */
+.hero-badge { animation: fadeInUp 0.4s 0.1s ease both; }
+.hero-headline { animation: fadeInUp 0.4s 0.18s ease both; }
+.hero-sub { animation: fadeInUp 0.4s 0.26s ease both; }
+.hero-actions { animation: fadeInUp 0.4s 0.34s ease both; }
+.hero-chat { animation: fadeInUp 0.4s 0.42s ease both; }
+
+/* ── Stats strip count-up ── */
+.stats-strip .stat-item { animation: fadeInUp 0.35s ease both; }
+.stats-strip .stat-item:nth-child(1) { animation-delay: 0.05s; }
+.stats-strip .stat-item:nth-child(2) { animation-delay: 0.12s; }
+.stats-strip .stat-item:nth-child(3) { animation-delay: 0.19s; }
+.stats-strip .stat-item:nth-child(4) { animation-delay: 0.26s; }
+
+/* ── Feature cards stagger ── */
+.feature-card { animation: fadeInUp 0.35s ease both; }
+.feature-card:nth-child(1) { animation-delay: 0.05s; }
+.feature-card:nth-child(2) { animation-delay: 0.10s; }
+.feature-card:nth-child(3) { animation-delay: 0.15s; }
+.feature-card:nth-child(4) { animation-delay: 0.20s; }
+.feature-card:nth-child(5) { animation-delay: 0.25s; }
+.feature-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ── AI reasoning panel slide-in (demo page) ── */
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.reasoning-panel.visible { animation: panelSlideIn 0.35s ease both; }
+
+/* ── Escalation staged reveal ── */
+@keyframes stageReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.escalation-stage { opacity: 0; }
+.escalation-stage.revealed { animation: stageReveal 0.3s ease both; opacity: 1; }
+
+/* ── Accordion expand ── */
+@keyframes accordionOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.accordion-body.open { animation: accordionOpen 0.22s ease both; }
+
+/* ── Persona toggle preview swap ── */
+@keyframes previewSwap {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.persona-preview.switching { animation: previewSwap 0.28s ease both; }
+
+/* ── Modal ── */
+.modal { transition: transform 0.22s cubic-bezier(0.4,0,0.2,1); }
+.modal-overlay { transition: opacity 0.2s; }
+
+/* ── Toast in/out ── */
+.toast { animation: toastIn 0.28s cubic-bezier(0.4,0,0.2,1) both; }
+.toast.leaving { animation: toastOut 0.22s ease forwards; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ── Focus visible ── */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) { outline: none; }
+
+/* ── Character counter ── */
+.char-counter { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-align: right; margin-top: 3px; transition: color 0.2s; }
+.char-counter.warn   { color: #FBBF24; }
+.char-counter.danger { color: #F87171; animation: counterPulse 0.35s ease; }
+@keyframes counterPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+
+/* ── Drag-over state ── */
+.kanban-col.drag-over {
+  background: rgba(29,158,117,0.08);
+  border-color: var(--accent);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+/* ── Copy button flash ── */
+@keyframes copyFlash {
+  0%   { background: var(--accent); color: #fff; }
+  100% { background: transparent; }
+}
+.copy-flash { animation: copyFlash 0.5s ease; }
+
+/* ── Dark mode transition ── */
+html, body, .sidebar, .topbar, .card, .modal, .cmd-palette, .chat-panel, .toast {
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}

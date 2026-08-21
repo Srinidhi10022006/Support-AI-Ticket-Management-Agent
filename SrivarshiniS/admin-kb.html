@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Base – TicketPilot Admin</title>
+  <meta name="description" content="Manage the AI knowledge base — review pending entries, approve, edit, or reject AI-generated content." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    /* KB stats */
+    .kb-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px; }
+
+    /* Pending cards — amber tint */
+    .kb-pending-card {
+      background: rgba(251,191,36,0.04);
+      border: 1px solid rgba(251,191,36,0.25);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 12px;
+      position: relative;
+      transition: border-color .18s;
+    }
+    .kb-pending-card:hover { border-color: rgba(251,191,36,0.45); }
+    .kb-pending-badge { position:absolute;top:14px;right:14px;font-size:.68rem; }
+    .kb-card-source { font-size:.72rem;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;gap:6px; }
+    .kb-card-question { font-size:.9rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;line-height:1.4; }
+    .kb-card-answer { font-size:.82rem;color:var(--text-secondary);line-height:1.65;background:var(--surface-2);border-radius:var(--radius);padding:10px 12px;border:1px solid var(--border);margin-bottom:12px; }
+    .kb-card-actions { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
+    .kb-card-meta { margin-left:auto;font-size:.72rem;color:var(--text-muted); }
+
+    /* Approved cards */
+    .kb-approved-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: border-color .18s;
+    }
+    .kb-approved-card:hover { border-color: var(--border-strong); }
+    .kb-approved-num { width:26px;height:26px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px; }
+    .kb-approved-content { flex:1;min-width:0; }
+    .kb-approved-title { font-size:.875rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;line-height:1.35; }
+    .kb-approved-meta { font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+    .kb-approved-actions { display:flex;gap:5px;flex-shrink:0; }
+
+    /* Search bar */
+    .kb-search {
+      display:flex;align-items:center;gap:8px;
+      background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius);
+      padding:8px 14px;flex:1;max-width:360px;
+    }
+    .kb-search:focus-within { border-color:var(--accent);background:var(--surface-3); }
+    .kb-search svg { width:14px;height:14px;color:var(--text-muted);flex-shrink:0; }
+    .kb-search input { background:transparent;border:none;outline:none;font-size:.875rem;color:var(--text-primary);flex:1; }
+
+    /* Add KB modal */
+    .kb-modal-label { font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:5px;display:block; }
+
+    /* Category filter */
+    .cat-filter { display:flex;gap:6px;flex-wrap:wrap; }
+    .cat-pill { padding:4px 12px;border-radius:var(--radius-full);font-size:.75rem;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--text-secondary);cursor:pointer;transition:var(--transition); }
+    .cat-pill:hover { border-color:var(--border-strong); }
+    .cat-pill.active { border-color:var(--accent);background:var(--accent-light);color:var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Admin</span>
+      <a href="admin-analytics.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="12" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="8" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="4" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+        Analytics
+      </a>
+      <a href="agent-queue.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Ticket Queue
+        <span class="nav-badge">47</span>
+      </a>
+      <a href="admin-kb.html" class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5a2 2 0 012-2h8a2 2 0 012 2v12l-6-3-6 3V5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Knowledge Base
+        <span class="nav-badge" style="background:#FBBF24;color:#0D1117;">0</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Users
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,#DC2626,#B91C1C);">SA</div>
+        <div>
+          <div class="sidebar-user-name">System Admin</div>
+          <div class="sidebar-user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Knowledge Base</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+          <svg viewBox="0 0 20 20" fill="none" style="width:13px;height:13px;"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Add entry
+        </button>
+        <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#DC2626,#B91C1C);">SA</div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Knowledge Base Manager</h2>
+          <p>Review AI-generated entries before publication. No content goes live without your approval.</p>
+        </div>
+      </div>
+
+      <!-- KB stats -->
+      <div class="kb-stats">
+        <div class="stat-card">
+          <div class="stat-card-label">Total articles</div>
+          <div class="stat-card-value">0</div>
+          <div class="stat-card-sub">No entries yet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Pending review</div>
+          <div class="stat-card-value" style="color:#FBBF24;">0</div>
+          <div class="stat-card-sub" style="color:#FBBF24;">Nothing to review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Auto-resolved by KB</div>
+          <div class="stat-card-value" style="color:var(--accent);">0<span style="font-size:1rem;font-weight:600;">%</span></div>
+          <div class="stat-card-sub">No data yet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Avg confidence</div>
+          <div class="stat-card-value">—</div>
+          <div class="stat-card-sub">No data yet</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-list" id="kb-tabs">
+        <button class="tab-btn active" id="tab-pending" onclick="switchTab('pending')">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Pending review
+          <span class="tab-count" id="pending-count">0</span>
+        </button>
+        <button class="tab-btn" id="tab-approved" onclick="switchTab('approved')">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Approved entries
+          <span class="tab-count">0</span>
+        </button>
+      </div>
+
+      <!-- Pending tab -->
+      <div class="tab-panel active" id="panel-pending">
+        <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;font-size:.82rem;color:#FBBF24;display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3L17.5 17H2.5L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          These entries were auto-generated from resolved tickets. Review each one carefully before approving — no AI content is published without your explicit approval.
+        </div>
+        <div id="pending-list"></div>
+      </div>
+
+      <!-- Approved tab -->
+      <div class="tab-panel" id="panel-approved">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
+          <div class="kb-search">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M15 15l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="search" id="kb-search-input" placeholder="Search knowledge base…" oninput="filterApproved()" />
+          </div>
+          <div class="cat-filter" id="cat-filter">
+            <button class="cat-pill active" onclick="setCatFilter('all',this)">All</button>
+            <button class="cat-pill" onclick="setCatFilter('Network',this)">Network</button>
+            <button class="cat-pill" onclick="setCatFilter('Account',this)">Account</button>
+            <button class="cat-pill" onclick="setCatFilter('HR',this)">HR</button>
+            <button class="cat-pill" onclick="setCatFilter('Billing',this)">Billing</button>
+            <button class="cat-pill" onclick="setCatFilter('Software',this)">Software</button>
+            <button class="cat-pill" onclick="setCatFilter('Hardware',this)">Hardware</button>
+          </div>
+        </div>
+        <div id="approved-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add entry modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3>Add knowledge base entry</h3>
+      <button class="modal-close" onclick="closeAddModal()">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="kb-modal-label">Question / Topic</label>
+        <input type="text" id="new-kb-q" placeholder="e.g. How do I reset my password?" />
+      </div>
+      <div class="form-group">
+        <label class="kb-modal-label">Answer / Solution</label>
+        <textarea id="new-kb-a" style="min-height:130px;" placeholder="Write the step-by-step solution…"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="kb-modal-label">Category</label>
+          <select id="new-kb-cat">
+            <option>Network</option><option>Account</option><option>HR</option>
+            <option>Billing</option><option>Software</option><option>Hardware</option><option>General</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="kb-modal-label">Status</label>
+          <select id="new-kb-status">
+            <option value="approved">Approved (publish now)</option>
+            <option value="pending">Pending (review later)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewEntry()">Save entry</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+
+<script src="js/app.js"></script>
+<script>
+/* ── Data ── */
+let pendingEntries = [];
+
+const approvedEntries = [];
+
+let activeCatFilter = 'all';
+let kbSearch = '';
+
+/* ── Render pending ── */
+function renderPending() {
+  const el = document.getElementById('pending-list');
+  const countEl = document.getElementById('pending-count');
+  countEl.textContent = pendingEntries.length;
+
+  if (!pendingEntries.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><svg width="40" height="40" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2" opacity=".4"/><path d="M16 24l5 5 11-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></div><h3>All caught up</h3><p>No pending entries — the AI will generate new ones as tickets are resolved.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = pendingEntries.map(e => `
+    <div class="kb-pending-card" id="pcard-${e.id}">
+      <span class="badge badge-pending kb-pending-badge">Pending review</span>
+      <div class="kb-card-source">
+        <svg width="11" height="11" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        Source: <a href="agent-ticket-detail.html" style="color:var(--accent);">${e.source}</a>
+        <span>·</span> <span class="badge badge-category" style="font-size:.65rem;">${e.category}</span>
+        <span>·</span> ${e.date}
+        <span>·</span>
+        <span style="color:${e.ai_conf>=70?'#4ADE80':e.ai_conf>=50?'#FBBF24':'#F87171'};font-weight:600;font-size:.72rem;">AI confidence: ${e.ai_conf}%</span>
+      </div>
+      <div class="kb-card-question">${e.question}</div>
+      <div class="kb-card-answer">${e.answer}</div>
+      <div class="kb-card-actions">
+        <button class="btn btn-success btn-sm" onclick="approveEntry('${e.id}')">
+          <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Approve
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="editEntry('${e.id}')">
+          <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M13 3l4 4-10 10H3v-4L13 3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="rejectEntry('${e.id}')">
+          <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Reject
+        </button>
+        <span class="kb-card-meta">ID: ${e.id}</span>
+      </div>
+    </div>`).join('');
+}
+
+function approveEntry(id) {
+  const card = document.getElementById('pcard-' + id);
+  if (card) { card.style.opacity='0.4'; card.style.pointerEvents='none'; }
+  setTimeout(() => {
+    pendingEntries = pendingEntries.filter(e => e.id !== id);
+    renderPending();
+    showToast('Entry approved and published to knowledge base', 'success');
+  }, 500);
+}
+
+function editEntry(id) {
+  showToast('Edit mode for ' + id + ' — in a real implementation this would open an editor', 'info');
+}
+
+function rejectEntry(id) {
+  const card = document.getElementById('pcard-' + id);
+  if (card) { card.style.borderColor='rgba(248,113,113,0.4)'; card.style.opacity='0.4'; card.style.pointerEvents='none'; }
+  setTimeout(() => {
+    pendingEntries = pendingEntries.filter(e => e.id !== id);
+    renderPending();
+    showToast('Entry rejected and discarded', 'warning');
+  }, 500);
+}
+
+/* ── Render approved ── */
+function renderApproved() {
+  const el = document.getElementById('approved-list');
+  const lc = kbSearch.toLowerCase();
+  const entries = approvedEntries.filter(e => {
+    const matchCat  = activeCatFilter === 'all' || e.cat === activeCatFilter;
+    const matchSrch = !lc || e.title.toLowerCase().includes(lc) || e.id.toLowerCase().includes(lc) || e.cat.toLowerCase().includes(lc);
+    return matchCat && matchSrch;
+  });
+
+  if (!entries.length) {
+    const noData = !approvedEntries.length;
+    el.innerHTML = noData
+      ? `<div class="empty-state"><div class="empty-state-icon"><svg width="40" height="40" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="32" height="28" rx="4" stroke="currentColor" stroke-width="2" opacity=".4"/><path d="M16 20h16M16 28h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg></div><h3>No articles yet</h3><p>Approved KB entries will appear here once tickets are resolved and articles reviewed.</p></div>`
+      : `<div class="empty-state"><h3>No entries match</h3><p>Try a different search or category filter.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = entries.map((e, i) => `
+    <div class="kb-approved-card">
+      <div class="kb-approved-num">${i+1}</div>
+      <div class="kb-approved-content">
+        <div class="kb-approved-title">${e.title}</div>
+        <div class="kb-approved-meta">
+          <span class="badge badge-category" style="font-size:.65rem;">${e.cat}</span>
+          <span>${e.id}</span>
+          <span>·</span>
+          <span>Used ${e.uses} times</span>
+          <span>·</span>
+          <span>Added ${e.date}</span>
+        </div>
+      </div>
+      <div class="kb-approved-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Editing ${e.id}…','info')" title="Edit">
+          <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M13 3l4 4-10 10H3v-4L13 3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="showToast('${e.id} deleted','warning')" title="Delete">
+          <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M4 6h12M9 6V4h2v2M6 6v9a1 1 0 001 1h6a1 1 0 001-1V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function filterApproved() { kbSearch = document.getElementById('kb-search-input').value; renderApproved(); }
+function setCatFilter(cat, btn) {
+  activeCatFilter = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderApproved();
+}
+
+/* ── Tab switching ── */
+function switchTab(tab) {
+  document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
+  document.getElementById('tab-approved').classList.toggle('active', tab === 'approved');
+  document.getElementById('panel-pending').classList.toggle('active', tab === 'pending');
+  document.getElementById('panel-approved').classList.toggle('active', tab === 'approved');
+  if (tab === 'approved') renderApproved();
+}
+
+/* ── Add modal ── */
+function openAddModal() {
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('open');
+}
+function saveNewEntry() {
+  const q = document.getElementById('new-kb-q').value.trim();
+  const a = document.getElementById('new-kb-a').value.trim();
+  if (!q || !a) { showToast('Please fill in both fields', 'warning'); return; }
+  const status = document.getElementById('new-kb-status').value;
+  closeAddModal();
+  showToast(status === 'approved' ? 'Entry published to knowledge base' : 'Entry saved for review', 'success');
+}
+document.getElementById('add-modal').addEventListener('click', function(e) { if(e.target===this)closeAddModal(); });
+
+/* ── Init ── */
+renderPending();
+</script>
+<script src="js/navbar.js" data-page="kb"></script>
+</body>
+</html>

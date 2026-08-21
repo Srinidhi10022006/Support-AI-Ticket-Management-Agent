@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TicketPilot – Support tickets that solve themselves</title>
+  <meta name="description" content="An AI agent that answers customer questions instantly, and only creates a ticket when a human is truly needed. Try it live." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    /* ── Landing-specific styles ── */
+    body { overflow-x: hidden; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 24px 80px;
+      position: relative;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(29,158,117,0.18) 0%, transparent 65%),
+                  radial-gradient(ellipse 50% 40% at 80% 80%, rgba(14,165,233,0.10) 0%, transparent 60%);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(29,158,117,0.12);
+      border: 1px solid rgba(29,158,117,0.3);
+      color: var(--accent);
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.03em;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: heroBadgePulse 2s ease-in-out infinite;
+    }
+    @keyframes heroBadgePulse {
+      0%,100% { opacity:1; transform: scale(1); }
+      50%      { opacity:0.5; transform: scale(0.8); }
+    }
+    .hero-headline {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, var(--text-primary) 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      line-height: 1.7;
+      margin: 0 auto 32px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 56px;
+    }
+
+    /* Mini hero chat */
+    .hero-chat {
+      width: 100%;
+      max-width: 540px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-xl), 0 0 0 1px rgba(29,158,117,0.08);
+      text-align: left;
+    }
+    .hero-chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-2);
+    }
+    .hero-chat-messages { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
+    .hero-chat-chips { padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .hero-chat-input { border-top: 1px solid var(--border); display: flex; gap: 8px; padding: 10px 12px; align-items: center; }
+    .hero-chat-input input {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      color: var(--text-primary);
+      outline: none;
+    }
+    .hero-chat-input input:focus { border-color: var(--accent); }
+
+    /* Stats strip */
+    .stats-strip {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 40px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 0 24px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-item-value {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      display: block;
+    }
+    .stat-item-label { font-size: 0.82rem; color: var(--text-muted); margin-top: 5px; }
+
+    /* How it works */
+    .section { padding: 80px 40px; max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 10px; }
+    .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .section-sub { font-size: 1rem; color: var(--text-secondary); max-width: 520px; line-height: 1.65; margin-bottom: 52px; }
+
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+    .how-steps::before {
+      content: '';
+      position: absolute;
+      top: 32px;
+      left: calc(16.66% + 12px);
+      right: calc(16.66% + 12px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), #0EA5E9, var(--accent));
+      opacity: 0.4;
+    }
+    .how-step { text-align: center; padding: 0 16px; }
+    .how-step-num {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(29,158,117,0.15), rgba(14,165,233,0.10));
+      border: 2px solid rgba(29,158,117,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent);
+      position: relative;
+      z-index: 1;
+      background-color: var(--bg);
+    }
+    .how-step-title { font-size: 1rem; font-weight: 700; }
+
+    /* Feature grid */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      transition: var(--transition);
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-md), 0 0 0 1px var(--accent-glow); }
+    .feature-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius);
+      background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
+    .feature-icon svg { width: 20px; height: 20px; color: var(--accent); }
+    .feature-title { font-size: 0.95rem; font-weight: 700; }
+
+    /* Persona toggle */
+    .persona-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .segmented-control {
+      display: inline-flex;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      margin-bottom: 36px;
+    }
+    .seg-btn {
+      padding: 8px 22px;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .seg-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(29,158,117,0.35); }
+    .persona-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      transition: all 0.28s;
+    }
+    .persona-preview-item { display: none; }
+    .persona-preview-item.visible { display: contents; }
+
+    /* Footer CTA */
+    .footer-cta {
+      text-align: center;
+      padding: 80px 24px;
+      background: radial-gradient(ellipse 60% 50% at 50% 100%, rgba(29,158,117,0.12) 0%, transparent 70%);
+    }
+    .footer-cta h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .footer-cta p  { color: var(--text-secondary); margin-bottom: 28px; }
+    .footer-cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    footer a { color: var(--text-muted); }
+    footer a:hover { color: var(--text-primary); }
+    .footer-links { display: flex; gap: 20px; }
+
+    @media (max-width: 900px) {
+      .how-steps::before { display: none; }
+      .how-steps { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .stats-strip { grid-template-columns: 1fr 1fr; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 20px 0; }
+      .stat-item:last-child { border-bottom: none; }
+      .persona-preview { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .section { padding: 48px 20px; }
+      .stats-strip { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Public Navbar ── -->
+<nav class="public-nav">
+  <a href="landing.html" class="public-nav-brand">
+    <div class="public-nav-brand-icon" style="background:transparent;width:34px;height:34px;padding:0;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span class="public-nav-brand-name">TicketPilot</span>
+  </a>
+  <div class="public-nav-links">
+    <a href="#how-it-works" class="public-nav-link">How it works</a>
+    <a href="demo.html" class="public-nav-link">Live demo</a>
+    <a href="about.html" class="public-nav-link">About</a>
+  </div>
+  <div class="public-nav-actions">
+    <button class="theme-toggle" id="landing-theme-toggle" style="border:1.5px solid var(--border);border-radius:var(--radius);width:34px;height:34px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;cursor:pointer;" aria-label="Toggle theme">
+      <svg class="icon-moon" viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <svg class="icon-sun" viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;display:none;"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <a href="index.html" class="btn btn-ghost btn-sm">Sign in</a>
+    <a href="signup.html" class="btn btn-primary btn-sm">Sign up free</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-badge">Powered by AI + RAG knowledge base</div>
+  <h1 class="hero-headline">Support tickets that<br/>solve themselves.</h1>
+  <p class="hero-sub">An AI agent that answers customer questions instantly, and only creates a ticket when a human is truly needed.</p>
+  <div class="hero-actions">
+    <a href="demo.html" class="btn btn-primary btn-lg">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg>
+      Try live demo
+    </a>
+    <a href="signup.html" class="btn btn-secondary btn-lg">Sign up free</a>
+  </div>
+
+  <!-- Functional mini chatbot -->
+  <div class="hero-chat" id="hero-chat">
+    <div class="hero-chat-header">
+      <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0EA5E9);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="rgba(255,255,255,0.9)"/></svg>
+      </div>
+      <div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text-primary);">TicketPilot Assistant</div>
+        <div style="font-size:.7rem;color:#4ADE80;">Online</div>
+      </div>
+      <div style="margin-left:auto;font-size:.72rem;color:var(--text-muted);background:var(--surface-3);border:1px solid var(--border);padding:2px 8px;border-radius:var(--radius-full);">Live demo</div>
+    </div>
+    <div class="hero-chat-messages" id="hero-messages">
+      <div class="chat-msg bot">
+        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0EA5E9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="white"/></svg>
+        </div>
+        <div class="msg-bubble">Hi! Ask me anything about your issue — I'll either answer it instantly or escalate to a specialist.</div>
+      </div>
+    </div>
+    <div class="hero-chat-chips" id="hero-chips">
+      <button class="chat-quick-btn" onclick="heroSend('How do I reset my password?')">Reset password</button>
+      <button class="chat-quick-btn" onclick="heroSend('My internet is not working')">Internet issue</button>
+      <button class="chat-quick-btn" onclick="heroSend('I have a billing question')">Billing</button>
+    </div>
+    <div class="hero-chat-input">
+      <input type="text" id="hero-input" placeholder="Type your question…" />
+      <button class="chat-send-btn" onclick="heroSend()" style="width:36px;height:36px;">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M17 3L3 9l6 2 2 6 6-14z" fill="white"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Strip ── -->
+<div class="stats-strip" id="stats-strip">
+  <div class="stat-item">
+    <span class="stat-item-value" data-count="78" data-suffix="%">78%</span>
+    <div class="stat-item-label">Auto-resolved by AI</div>
+  </div>
+  <div class="stat-item">
+    <span class="stat-item-value" id="stat-speed">2.3s</span>
+    <div class="stat-item-label">Avg first response</div>
+  </div>
+  <div class="stat-item">
+    <span class="stat-item-value" data-count="10000" data-suffix="+" data-duration="1600">10000+</span>
+    <div class="stat-item-label">Tickets handled</div>
+  </div>
+  <div class="stat-item">
+    <span class="stat-item-value">24/7</span>
+    <div class="stat-item-label">Always available</div>
+  </div>
+</div>
+
+<!-- ── How it works ── -->
+<section id="how-it-works">
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Three steps, zero friction.</h2>
+    <p class="section-sub">From question to resolution — automated where possible, human where needed.</p>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <h3 class="how-step-title">Ask anything</h3>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <h3 class="how-step-title">AI resolves or routes</h3>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <h3 class="how-step-title">System keeps learning</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Feature Grid ── -->
+<section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything your support team needs.</h2>
+    <p class="section-sub">Built for scale, designed for humans.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="feature-title">Smart chatbot</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="feature-title">Dynamic priority routing</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="feature-title">Confidence-based escalation</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M17 10a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8.5c-.5-1-1.5-1.5-2-1.5s-2 .5-2 2c0 2.5 4 4 4 4s-1-2-1-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+        <div class="feature-title">Agent AI copilot</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M4 5a2 2 0 012-2h8a2 2 0 012 2v12l-6-3-6 3V5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="feature-title">Self-improving knowledge base</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="12" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="8" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="4" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="feature-title">Real-time analytics</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Persona Toggle ── -->
+<section class="persona-section">
+  <div class="section" style="text-align:center;">
+    <div class="section-label">Built for everyone</div>
+    <h2 class="section-title">See it from your perspective.</h2>
+    <div class="segmented-control">
+      <button class="seg-btn active" id="seg-customer" onclick="switchPersona('customer')">I'm a customer</button>
+      <button class="seg-btn" id="seg-agent" onclick="switchPersona('agent')">I'm a support agent</button>
+    </div>
+
+    <div id="persona-customer" class="persona-preview">
+      <div class="persona-preview-item visible">
+        <div class="card" style="text-align:left;">
+          <div class="section-title" style="color:var(--accent);">Your experience</div>
+          <h3 style="margin-bottom:10px;">Ask once, get answers fast.</h3>
+          <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:16px;">No call queues. No form spam. Type your question, get an instant answer. If the AI can't solve it, a real person is notified automatically.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="color:var(--accent);">✓</span><span style="font-size:.875rem;">Track your ticket status in real time</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="color:var(--accent);">✓</span><span style="font-size:.875rem;">Rate your experience — it trains the AI</span></div>
+          </div>
+        </div>
+        <div class="card" style="background:linear-gradient(135deg,rgba(29,158,117,0.06),rgba(14,165,233,0.04));border-color:var(--accent-glow);text-align:left;">
+          <div class="section-title">Status update</div>
+          <div style="font-size:.875rem;font-weight:600;margin-bottom:12px;">TKT-042 — Cannot connect to VPN</div>
+          <div class="status-timeline" id="demo-stepper-customer"></div>
+          <div style="margin-top:14px;padding:12px;background:var(--surface-2);border-radius:var(--radius);font-size:.82rem;color:var(--text-secondary);">
+            Agent Sarah is reviewing your ticket. Estimated resolution: 45 min.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="persona-agent" class="persona-preview" style="display:none;">
+      <div class="persona-preview-item visible">
+        <div class="card" style="text-align:left;">
+          <div class="section-title" style="color:#A78BFA;">Your experience</div>
+          <h3 style="margin-bottom:10px;">Focus on the hard problems.</h3>
+          <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:16px;">Tickets arrive pre-classified, prioritized, and with AI-drafted replies ready. You spend your time resolving issues — not reading emails.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="color:#A78BFA;">✓</span><span style="font-size:.875rem;">AI copilot drafts replies in your style</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="color:#A78BFA;">✓</span><span style="font-size:.875rem;">Similar past tickets surfaced automatically</span></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="color:#A78BFA;">✓</span><span style="font-size:.875rem;">Kanban board with real-time updates</span></div>
+          </div>
+          <div style="margin-top:20px;"><a href="index.html" class="btn btn-secondary">Sign in as agent</a></div>
+        </div>
+        <div class="card ai-panel" style="text-align:left;">
+          <div class="ai-panel-header">
+            <div class="ai-panel-title">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              AI Copilot
+            </div>
+            <span class="badge badge-ai">Active</span>
+          </div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:10px;">Draft reply</div>
+          <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:.82rem;color:var(--text-secondary);line-height:1.6;">
+            "Hi Jane, thank you for reaching out. I've reviewed your VPN issue and can see the connection is dropping at the authentication stage. Please try the updated config file attached, and let me know if it resolves the issue…"
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-primary btn-sm">Send reply</button>
+            <button class="btn btn-ghost btn-sm">Regenerate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer CTA ── -->
+<div class="footer-cta" style="padding:50px 24px;">
+  <h2>Start resolving tickets smarter.</h2>
+  <p style="margin:0;">No credit card required. Full access in under a minute.</p>
+</div>
+
+<footer>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div style="width:34px;height:34px;background:transparent;display:flex;align-items:center;justify-content:center;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span style="font-weight:600;color:var(--text-primary);">TicketPilot</span>
+  </div>
+  <span>© 2026 TicketPilot. All rights reserved.</span>
+  <div class="footer-links">
+    <a href="about.html">About</a>
+    <a href="demo.html">Demo</a>
+    <a href="index.html">Sign in</a>
+    <a href="signup.html">Sign up</a>
+  </div>
+</footer>
+
+<div id="app-toast-container" class="toast-container"></div>
+
+<script src="js/app.js"></script>
+<script>
+/* ── Theme toggle ── */
+document.getElementById('landing-theme-toggle').addEventListener('click', () => {
+  toggleDarkMode();
+  const btn = document.getElementById('landing-theme-toggle');
+  const isLight = document.documentElement.classList.contains('light');
+  btn.querySelector('.icon-moon').style.display = isLight ? 'none' : 'block';
+  btn.querySelector('.icon-sun').style.display  = isLight ? 'block' : 'none';
+});
+
+/* ── Hero chatbot ── */
+const HERO_REPLIES = {
+  'how do i reset my password?': 'To reset your password: go to the login page, click "Forgot password", enter your email, and follow the link sent to your inbox. The link expires in 30 minutes.',
+  'my internet is not working':  'Let me check your connectivity. First, try restarting your router. If the issue persists, I can escalate to our network team. Can you tell me which building you are in?',
+  'i have a billing question':   'I can help with billing. Are you asking about a charge on your account, a refund request, or your current subscription plan?',
+};
+const HERO_DEFAULT = 'I understand your concern. Let me look that up for you — if I can\'t find a direct answer, I\'ll create a support ticket automatically.';
+
+function heroSend(text) {
+  const input = document.getElementById('hero-input');
+  const msg = text || (input ? input.value.trim() : '');
+  if (!msg) return;
+  if (input) input.value = '';
+
+  const messages = document.getElementById('hero-messages');
+  // User
+  messages.insertAdjacentHTML('beforeend', `<div class="chat-msg user"><div class="msg-bubble">${msg}</div></div>`);
+  messages.scrollTop = messages.scrollHeight;
+
+  // Typing
+  const typingId = 'hero-typing';
+  messages.insertAdjacentHTML('beforeend', `<div class="chat-msg bot" id="${typingId}"><div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0EA5E9);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="white"/></svg></div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`);
+  messages.scrollTop = messages.scrollHeight;
+
+  setTimeout(() => {
+    const typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    const reply = HERO_REPLIES[msg.toLowerCase()] || HERO_DEFAULT;
+    messages.insertAdjacentHTML('beforeend', `<div class="chat-msg bot"><div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0EA5E9);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="white"/></svg></div><div class="msg-bubble">${reply}</div></div>`);
+    messages.scrollTop = messages.scrollHeight;
+  }, 900);
+}
+
+document.getElementById('hero-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') heroSend();
+});
+
+/* ── Persona toggle ── */
+function switchPersona(persona) {
+  document.getElementById('seg-customer').classList.toggle('active', persona === 'customer');
+  document.getElementById('seg-agent').classList.toggle('active', persona === 'agent');
+  document.getElementById('persona-customer').style.display = persona === 'customer' ? 'grid' : 'none';
+  document.getElementById('persona-agent').style.display   = persona === 'agent'    ? 'grid' : 'none';
+}
+
+/* ── Customer status stepper ── */
+(function buildCustomerStepper() {
+  const steps = ['Open','Assigned','In progress','Resolved'];
+  const current = 2;
+  const el = document.getElementById('demo-stepper-customer');
+  if (!el) return;
+  el.innerHTML = steps.map((s,i) => `
+    <div class="timeline-step ${i<current?'done':i===current?'done current':''}">
+      <div class="timeline-dot">${i<current?'✓':i+1}</div>
+      <div class="timeline-label">${s}</div>
+    </div>`).join('');
+})();
+
+/* ── Counters (handled by app.js initCounters) ── */
+</script>
+</body>
+</html>

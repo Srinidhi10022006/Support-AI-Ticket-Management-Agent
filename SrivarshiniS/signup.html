@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign up – TicketPilot</title>
+  <meta name="description" content="Create your TicketPilot account. Get started with AI-powered support in minutes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    html, body { height: 100%; }
+    body { display: flex; overflow: hidden; }
+    .auth-left {
+      flex: 0 0 42%;
+      background: linear-gradient(160deg, #0D1117 0%, #0A1F17 60%, #111820 100%);
+      display: flex; flex-direction: column; padding: 40px 48px;
+      position: relative; overflow: hidden;
+    }
+    .auth-left::before { content:''; position:absolute; top:-80px; right:-80px; width:400px; height:400px; background:radial-gradient(circle, rgba(29,158,117,0.20) 0%, transparent 65%); pointer-events:none; }
+    .auth-left::after  { content:''; position:absolute; bottom:-80px; left:-80px; width:350px; height:350px; background:radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 65%); pointer-events:none; }
+    .auth-orb { position:absolute; border-radius:50%; opacity:0.35; animation: orbFloat 8s ease-in-out infinite; }
+    .orb-1 { width:100px;height:100px; background:radial-gradient(circle,rgba(29,158,117,0.5),transparent); top:20%;right:20%; }
+    .orb-2 { width:70px;height:70px; background:radial-gradient(circle,rgba(167,139,250,0.4),transparent); bottom:35%;left:15%;animation-delay:4s; }
+    @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-18px) scale(1.04);} }
+    .auth-brand { display:flex;align-items:center;gap:10px;margin-bottom:auto;text-decoration:none; }
+    .auth-brand-icon { width:34px;height:34px;display:flex;align-items:center;justify-content:center; }
+    .auth-brand-name { font-size:1.1rem;font-weight:700;color:#fff; }
+    .auth-left-content { flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1; }
+    .auth-left-title { font-size:2.2rem;font-weight:800;color:#fff;line-height:1.15;letter-spacing:-0.02em;margin-bottom:12px; }
+    .auth-left-sub { font-size:.95rem;color:rgba(255,255,255,0.5);line-height:1.65;margin-bottom:32px; }
+    .auth-steps { display:flex;flex-direction:column;gap:14px; }
+    .auth-step { display:flex;align-items:flex-start;gap:12px;font-size:.85rem;color:rgba(255,255,255,0.65); }
+    .auth-step-num { width:24px;height:24px;border-radius:50%;background:rgba(29,158,117,0.2);border:1px solid rgba(29,158,117,0.35);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;margin-top:1px; }
+    .auth-left-footer { font-size:.72rem;color:rgba(255,255,255,0.25);margin-top:40px;position:relative;z-index:1; }
+    .auth-right { flex:1;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:28px 24px;overflow-y:auto; }
+    .auth-card { width:100%;max-width:420px;animation:fadeInUp .4s ease both; }
+    .auth-card-header { margin-bottom:24px; }
+    .auth-card-header h2 { font-size:1.6rem;font-weight:800;margin-bottom:5px;letter-spacing:-0.02em; }
+    .auth-card-header p { color:var(--text-secondary);font-size:.875rem; }
+    .auth-form { display:flex;flex-direction:column;gap:13px; }
+    .name-row { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+    /* Role toggle */
+    .role-toggle { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+    .role-toggle-option {
+      border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 10px;
+      display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
+      transition:all .18s;position:relative;
+    }
+    .role-toggle-option input { position:absolute;opacity:0;width:0;height:0; }
+    .role-toggle-option:hover { border-color:var(--border-strong);background:var(--surface-hover); }
+    .role-toggle-option.selected { border-color:var(--accent);background:var(--accent-light); }
+    .role-toggle-icon { width:36px;height:36px;border-radius:var(--radius);background:var(--surface-2);display:flex;align-items:center;justify-content:center; }
+    .role-toggle-option.selected .role-toggle-icon { background:rgba(29,158,117,0.15); }
+    .role-toggle-icon svg { width:18px;height:18px;color:var(--text-secondary); }
+    .role-toggle-option.selected .role-toggle-icon svg { color:var(--accent); }
+    .role-toggle-label { font-size:.78rem;font-weight:600;color:var(--text-secondary); }
+    .role-toggle-option.selected .role-toggle-label { color:var(--accent); }
+    .agent-note { display:none;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:var(--radius);padding:10px 12px;font-size:.78rem;color:#FBBF24;line-height:1.5;gap:8px;align-items:flex-start; }
+    .agent-note.show { display:flex; }
+    .agent-note svg { width:14px;height:14px;flex-shrink:0;margin-top:1px; }
+    /* Password strength */
+    .pass-strength { display:flex;gap:4px;margin-top:4px; }
+    .pass-bar { flex:1;height:3px;border-radius:99px;background:var(--border);transition:background .3s; }
+    .pass-bar.active-1 { background:#F87171; }
+    .pass-bar.active-2 { background:#FBBF24; }
+    .pass-bar.active-3 { background:#4ADE80; }
+    .pass-bar.active-4 { background:#1D9E75; }
+    .pass-hint { font-size:.72rem;color:var(--text-muted);margin-top:3px; }
+    /* Agree */
+    .agree-row { display:flex;align-items:flex-start;gap:9px;font-size:.8rem;color:var(--text-secondary); }
+    .agree-row input { margin-top:2px;accent-color:var(--accent);flex-shrink:0; }
+    .agree-row a { color:var(--accent); }
+    .divider { display:flex;align-items:center;gap:12px;margin:4px 0; }
+    .divider::before,.divider::after { content:'';flex:1;height:1px;background:var(--border); }
+    .divider span { font-size:.72rem;color:var(--text-muted); }
+    .auth-footer-note { text-align:center;font-size:.82rem;color:var(--text-muted);margin-top:12px; }
+    .auth-footer-note a { color:var(--accent);font-weight:600; }
+    @media (max-width:768px) {
+      body { flex-direction:column;overflow:auto; }
+      .auth-left { flex:none;min-height:200px;padding:28px 20px; }
+      .auth-left-content { display:none; }
+      .auth-right { padding:24px 16px; }
+    }
+    @media (max-width:480px) { .name-row { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ── Left panel ── -->
+<div class="auth-left">
+  <div class="auth-orb orb-1"></div>
+  <div class="auth-orb orb-2"></div>
+  <a href="landing.html" class="auth-brand">
+    <div class="auth-brand-icon" style="background:transparent;width:34px;height:34px;padding:0;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span class="auth-brand-name">TicketPilot</span>
+  </a>
+  <div class="auth-left-content">
+    <h1 class="auth-left-title">Get started<br/>in minutes.</h1>
+    <p class="auth-left-sub">Create your account and start resolving support issues with the power of AI.</p>
+    <div class="auth-steps">
+      <div class="auth-step"><div class="auth-step-num">1</div>Create your free account</div>
+      <div class="auth-step"><div class="auth-step-num">2</div>Your AI assistant is ready immediately</div>
+      <div class="auth-step"><div class="auth-step-num">3</div>Start resolving tickets — 78% auto-solved</div>
+    </div>
+  </div>
+  <div class="auth-left-footer">© 2026 TicketPilot. All rights reserved.</div>
+</div>
+
+<!-- ── Right form panel ── -->
+<div class="auth-right">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <h2>Create your account</h2>
+      <p>Free forever for individual accounts. No credit card required.</p>
+    </div>
+
+    <form class="auth-form" onsubmit="handleSignup(event)">
+      <div class="name-row">
+        <div class="form-group">
+          <label for="first-name">First name</label>
+          <input type="text" id="first-name" placeholder="Jane" required />
+        </div>
+        <div class="form-group">
+          <label for="last-name">Last name</label>
+          <input type="text" id="last-name" placeholder="Doe" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="signup-email">Email address</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 6.667L10 11.25l7.5-4.583" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="2.5" y="4.167" width="15" height="11.667" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          <input type="email" id="signup-email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="password" id="signup-password" placeholder="Minimum 8 characters" required minlength="8" autocomplete="new-password" oninput="checkPassStrength(this.value)" />
+        </div>
+        <div class="pass-strength">
+          <div class="pass-bar" id="ps-1"></div>
+          <div class="pass-bar" id="ps-2"></div>
+          <div class="pass-bar" id="ps-3"></div>
+          <div class="pass-bar" id="ps-4"></div>
+        </div>
+        <span class="pass-hint" id="pass-hint">Use 8+ characters with a mix of letters and numbers</span>
+      </div>
+
+      <!-- Role selection -->
+      <div class="form-group">
+        <label>Account type</label>
+        <div class="role-toggle">
+          <label class="role-toggle-option selected" id="role-customer">
+            <input type="radio" name="signup-role" value="customer" checked onchange="setSignupRole('customer')" />
+            <div class="role-toggle-icon">
+              <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <div class="role-toggle-label">Customer</div>
+          </label>
+          <label class="role-toggle-option" id="role-agent">
+            <input type="radio" name="signup-role" value="agent" onchange="setSignupRole('agent')" />
+            <div class="role-toggle-icon">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg>
+            </div>
+            <div class="role-toggle-label">Support agent</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Agent note -->
+      <div class="agent-note" id="agent-note">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 3L17.5 17H2.5L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 9v4M10 14.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Support agent accounts require admin approval before activation. You'll receive an email when your account is reviewed (typically within 24 hours).</span>
+      </div>
+
+      <!-- Terms -->
+      <label class="agree-row">
+        <input type="checkbox" id="agree-terms" required />
+        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-full" id="signup-btn">
+        <span id="signup-btn-text">Create account</span>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+
+    <div class="divider"><span>or</span></div>
+
+    <p class="auth-footer-note">Already have an account? <a href="index.html">Sign in</a> · <a href="demo.html">Try demo first</a></p>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+let signupRole = 'customer';
+
+function setSignupRole(role) {
+  signupRole = role;
+  document.getElementById('role-customer').classList.toggle('selected', role === 'customer');
+  document.getElementById('role-agent').classList.toggle('selected',   role === 'agent');
+  const noteEl = document.getElementById('agent-note');
+  noteEl.classList.toggle('show', role === 'agent');
+}
+
+function checkPassStrength(val) {
+  let score = 0;
+  if (val.length >= 8)  score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const bars = ['ps-1','ps-2','ps-3','ps-4'];
+  const cls  = score >= 4 ? 4 : score >= 3 ? 3 : score >= 2 ? 2 : score >= 1 ? 1 : 0;
+  const hints = ['','Weak — add more characters','Fair — try adding numbers','Good — add a special character','Strong password'];
+  bars.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'pass-bar' + (i < score ? ` active-${cls}` : '');
+  });
+  document.getElementById('pass-hint').textContent = hints[cls] || 'Use 8+ characters';
+}
+
+async function handleSignup(e) {
+  e.preventDefault();
+  const btn      = document.getElementById('signup-btn');
+  const btnText  = document.getElementById('signup-btn-text');
+  const firstName = document.getElementById('first-name').value.trim();
+  const lastName  = document.getElementById('last-name').value.trim();
+  const email     = document.getElementById('signup-email').value.trim();
+  const password  = document.getElementById('signup-password').value;
+  const fullName  = [firstName, lastName].filter(Boolean).join(' ');
+
+  if (!fullName || !email || !password) {
+    if (window.showToast) window.showToast('Please complete all fields.', 'warning');
+    return;
+  }
+
+  btn.classList.add('btn-loading');
+  btnText.textContent = 'Creating account…';
+
+  try {
+    const data = await window.apiRequest('/auth/register', 'POST', {
+      name: fullName,
+      email,
+      password,
+      role: signupRole,
+    });
+
+    if (data && data.token) {
+      window.setCurrentUser(data.user, data.token);
+      if (window.showToast) {
+        window.showToast(signupRole === 'agent' ? 'Agent account created — awaiting review.' : `Welcome to TicketPilot, ${firstName}!`, signupRole === 'agent' ? 'info' : 'success');
+      }
+      setTimeout(() => {
+        window.location.href = window.getDashboardUrl(data.user.role);
+      }, 900);
+    }
+  } catch (error) {
+    if (window.showToast) window.showToast(error.message || 'Sign-up failed.', 'error');
+  } finally {
+    btn.classList.remove('btn-loading');
+    btnText.textContent = 'Create account';
+  }
+}
+</script>
+</body>
+</html>

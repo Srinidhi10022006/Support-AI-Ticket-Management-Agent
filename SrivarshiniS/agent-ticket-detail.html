@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket Workspace – TicketPilot Agent</title>
+  <meta name="description" content="Agent ticket workspace — resolve, reply, add notes, and view AI analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <style>
+    /* Workspace layout: left panel | right agent workspace */
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      height: calc(100vh - 60px);
+      overflow: hidden;
+    }
+    /* Left panel */
+    .left-panel {
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .panel-section {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-section:last-child { border-bottom: none; }
+    .panel-label {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-size: .82rem; }
+    .info-label { color: var(--text-muted); font-size: .78rem; }
+    .info-value { font-weight: 600; color: var(--text-primary); }
+
+    /* AI Analysis card */
+    .ai-analysis {
+      background: linear-gradient(135deg, rgba(29,158,117,0.07) 0%, rgba(14,165,233,0.04) 100%);
+      border: 1.5px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      box-shadow: 0 0 16px rgba(29,158,117,0.08);
+    }
+    .ai-analysis-header {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; color: var(--accent); font-size: .85rem;
+      margin-bottom: 12px;
+    }
+    .ai-analysis-header svg { width: 15px; height: 15px; }
+
+    /* Checklist steps */
+    .checklist { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .checklist-item { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; padding: 4px 0; }
+    .check-box {
+      width: 17px; height: 17px; border-radius: 4px;
+      border: 2px solid var(--border);
+      flex-shrink: 0; margin-top: 1px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .checklist-item.done .check-box { background: var(--accent); border-color: var(--accent); }
+    .checklist-item.done .check-box::after { content: '✓'; color: #fff; font-size: .65rem; font-weight: 800; }
+    .check-text { font-size: .8rem; color: var(--text-secondary); line-height: 1.45; transition: color .15s; }
+    .checklist-item.done .check-text { text-decoration: line-through; color: var(--text-muted); }
+
+    /* Right agent workspace */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .workspace-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .workspace-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    /* Timeline card container — scrollable */
+    #tl-container {
+      max-height: 420px;
+      overflow-y: auto;
+      padding: 14px 16px;
+    }
+
+    /* Reply/Note boxes */
+    .reply-mode-toggle {
+      display: flex; gap: 3px;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3px;
+      width: fit-content;
+    }
+    .reply-mode-btn {
+      padding: 5px 14px;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+    .reply-mode-btn.active { background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+    .reply-mode-btn.active.note-mode { background: rgba(251,191,36,0.15); color: #FBBF24; }
+
+    .reply-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .reply-box-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface-2);
+    }
+    .reply-box-label { font-size: .75rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+    .reply-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: .875rem;
+      color: var(--text-primary);
+      resize: none;
+      min-height: 100px;
+      padding: 12px 14px;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+    .reply-box.note-active { border-color: rgba(251,191,36,0.35); }
+    .reply-box.note-active .reply-textarea { background: rgba(251,191,36,0.03); }
+    .reply-box-footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+
+    /* Activity timeline */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item { display: flex; gap: 12px; padding: 10px 0; position: relative; }
+    .tl-item:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 36px;
+      bottom: -6px;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-dot {
+      width: 30px; height: 30px;
+      border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: .68rem;
+      font-weight: 700;
+      z-index: 1;
+    }
+    .tl-content { flex: 1; min-width: 0; }
+    .tl-action { font-size: .82rem; font-weight: 600; color: var(--text-primary); }
+    .tl-detail { font-size: .78rem; color: var(--text-secondary); margin-top: 2px; line-height: 1.45; }
+    .tl-time { font-size: .7rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* Status stepper */
+    .status-stepper { display: flex; align-items: center; gap: 0; }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; cursor: pointer; }
+    .step-item:not(:last-child)::after { content:''; position:absolute; top:14px; left:calc(50% + 14px); right:calc(-50% + 14px); height:2px; background:var(--border); transition: background .4s; }
+    .step-item.done:not(:last-child)::after { background:var(--accent); }
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--border);
+      background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .65rem; font-weight: 800;
+      color: var(--text-muted);
+      transition: all .25s;
+      z-index: 1;
+    }
+    .step-item.done .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .step-item.current .step-dot { background: var(--surface); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .step-label { font-size: .65rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+    .step-item.done .step-label, .step-item.current .step-label { color: var(--accent); }
+
+    /* Canned responses slide panel */
+    .canned-panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 380px;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow-xl);
+      z-index: 400;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .canned-panel.open { transform: translateX(0); }
+    .canned-header { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .canned-search { padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .canned-list { flex: 1; overflow-y: auto; }
+    .canned-category { padding: 10px 16px 4px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--text-muted); }
+    .canned-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .14s; }
+    .canned-item:hover { background: var(--surface-hover); }
+    .canned-item-title { font-size: .82rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .canned-item-preview { font-size: .75rem; color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .canned-insert { float: right; margin-top: -2px; }
+
+    /* Resolution modal */
+    @media (max-width: 900px) {
+      .workspace-layout { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar" style="position:fixed;top:0;left:0;right:0;z-index:50;">
+  <div class="topbar-left">
+    <a href="agent-queue.html" style="display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:.82rem;">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Queue
+    </a>
+    <span style="color:var(--border);margin:0 6px;">/</span>
+    <span style="font-size:.82rem;color:var(--text-primary);font-weight:600;" id="hdr-id">TKT-001</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <div class="sidebar-brand-icon" style="background:transparent;width:24px;height:24px;padding:0;">
+      <svg width="24" height="24" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span style="font-size:.9rem;font-weight:700;">TicketPilot</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme" onclick="window.toggleDarkMode()">
+      <span class="icon-sun"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+      <span class="icon-moon"><svg viewBox="0 0 20 20" fill="none"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+    </button>
+    <button class="icon-btn" onclick="initCommandPalette();document.getElementById('cmd-overlay')?.classList.add('open')" title="Search">
+      <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M15 15l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);cursor:pointer;" data-user-initials>MA</div>
+  </div>
+</header>
+
+<div style="margin-top:60px;">
+<div class="workspace-layout">
+
+  <!-- ── Left Panel: Full ticket details ── -->
+  <div class="left-panel">
+    <!-- Ticket title & status -->
+    <div class="panel-section">
+      <div style="font-size:1rem;font-weight:700;margin-bottom:4px;line-height:1.35;" id="tkt-title">Cannot connect to office Wi-Fi</div>
+      <div style="font-size:.75rem;color:var(--text-muted);font-family:monospace;margin-bottom:10px;" id="tkt-id">TKT-001</div>
+      <div class="status-stepper" id="status-stepper">
+        <div class="step-item done" id="step-open"><div class="step-dot">✓</div><span class="step-label">Open</span></div>
+        <div class="step-item current" id="step-inprogress"><div class="step-dot">●</div><span class="step-label">In Progress</span></div>
+        <div class="step-item" id="step-resolved"><div class="step-dot">3</div><span class="step-label">Resolved</span></div>
+        <div class="step-item" id="step-closed"><div class="step-dot">4</div><span class="step-label">Closed</span></div>
+      </div>
+    </div>
+
+    <!-- Customer info -->
+    <div class="panel-section">
+      <div class="panel-label">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Customer
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div id="customer-avatar" class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--accent),#0EA5E9);">JD</div>
+        <div>
+          <div id="customer-name" style="font-size:.85rem;font-weight:600;">Jane Doe</div>
+          <div id="customer-email" style="font-size:.72rem;color:var(--text-muted);">jane.doe@example.com</div>
+        </div>
+      </div>
+      <div id="customer-ticket-stats" style="font-size:.75rem;color:var(--text-muted);">3 previous tickets · 0 unresolved</div>
+    </div>
+
+    <!-- Ticket details -->
+    <div class="panel-section">
+      <div class="panel-label">Details</div>
+      <div class="info-row"><span class="info-label">Priority</span><span id="info-priority" class="badge badge-high">High</span></div>
+      <div class="info-row"><span class="info-label">Category</span><span id="info-category" class="badge badge-category">Network</span></div>
+      <div class="info-row"><span class="info-label">Sentiment</span><span id="info-sentiment" class="badge badge-sentiment-negative">😤 Frustrated</span></div>
+      <div class="info-row"><span class="info-label">Created</span><span id="info-created" class="info-value">2h ago</span></div>
+      <div class="info-row"><span class="info-label">SLA deadline</span><span id="info-sla" style="font-size:.78rem;font-weight:700;color:#FBBF24;">4h 30m left</span></div>
+      <div class="info-row"><span class="info-label">Assigned to</span><span id="info-assigned" class="info-value">You (Mike Adams)</span></div>
+    </div>
+
+    <!-- Description -->
+    <div class="panel-section">
+      <div class="panel-label">Description</div>
+      <p id="tkt-description" style="font-size:.82rem;color:var(--text-secondary);line-height:1.65;">I'm unable to connect to the corporate Wi-Fi on the 2nd floor of Building A. My laptop and phone are both affected but colleagues on the 3rd floor are fine. I've tried restarting my devices and forgetting/reconnecting the network but nothing works. I have an important presentation in 2 hours!</p>
+    </div>
+
+    <!-- Attachments -->
+    <div class="panel-section">
+      <div class="panel-label">Attachments</div>
+      <div id="tkt-attachments" style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface-2);border-radius:var(--radius);border:1px solid var(--border);">
+          <span style="font-size:1rem;">📸</span>
+          <span style="font-size:.78rem;color:var(--text-secondary);flex:1;">wifi_error_screenshot.png</span>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Downloading','info')" style="padding:3px 8px;font-size:.72rem;">↓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Analysis card -->
+    <div class="panel-section">
+      <div class="panel-label">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        AI Analysis
+        <span class="badge badge-ai" style="margin-left:auto;font-size:.65rem;animation:badgePulse 2s infinite;">Live</span>
+      </div>
+      <div class="ai-analysis">
+        <div class="ai-analysis-header">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          AI Copilot — Suggested Resolution
+        </div>
+        <div class="ai-badge-row">
+          <span class="badge badge-category">Network</span>
+          <span class="badge badge-high">High Priority</span>
+          <span class="badge badge-sentiment-negative">Frustrated</span>
+          <span class="badge" style="background:rgba(29,158,117,0.12);color:var(--accent);border-color:var(--accent-glow);">89% Confidence</span>
+        </div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:8px;">Suggested solution steps — check off as you go:</div>
+        <div class="checklist" id="ai-checklist">
+          <div class="checklist-item" onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span class="check-text">Check AP-B2-02 (2nd floor access point) logs in the network controller</span>
+          </div>
+          <div class="checklist-item" onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span class="check-text">Identify channel congestion or device overload on AP-B2-02</span>
+          </div>
+          <div class="checklist-item" onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span class="check-text">Restart the access point or switch to a less congested channel (e.g. channel 11)</span>
+          </div>
+          <div class="checklist-item" onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span class="check-text">Ask customer to reconnect to corporate Wi-Fi after 5 minutes</span>
+          </div>
+          <div class="checklist-item" onclick="toggleCheck(this)">
+            <div class="check-box"></div>
+            <span class="check-text">Verify connectivity on multiple devices before marking resolved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right Panel: Agent Workspace ── -->
+  <div class="right-panel">
+    <div class="workspace-header">
+      <div>
+        <div style="font-size:.92rem;font-weight:700;max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="ws-title">Cannot connect to office Wi-Fi</div>
+        <div style="font-size:.72rem;color:var(--text-muted);">TKT-001 · Network · Opened 2 hours ago</div>
+      </div>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-ghost btn-sm" onclick="openEscalate()">
+          <svg viewBox="0 0 20 20" fill="none" style="width:13px;height:13px;"><path d="M10 4v12M4 10l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Escalate
+        </button>
+        <button class="btn btn-success btn-sm" onclick="openResolveModal()" id="resolve-btn">
+          <svg viewBox="0 0 20 20" fill="none" style="width:13px;height:13px;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Mark as Resolved
+        </button>
+      </div>
+    </div>
+
+    <div class="workspace-body">
+      <!-- Reply box: visible to customer -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="reply-mode-toggle">
+            <button class="reply-mode-btn active" id="mode-reply" onclick="setReplyMode('reply')">Reply</button>
+            <button class="reply-mode-btn note-mode" id="mode-note" onclick="setReplyMode('note')">Internal Note</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openCannedPanel()">
+            <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Insert Template
+          </button>
+        </div>
+        <div class="reply-box" id="reply-box">
+          <div class="reply-box-header">
+            <div class="reply-box-label" id="reply-label">
+              <svg viewBox="0 0 20 20" fill="none" width="12" height="12"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg>
+              Reply — Visible to customer
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:.72rem;" onclick="showToast('Draft saved','success')">Save draft</button>
+              <label style="cursor:pointer;" title="Attach file">
+                <input type="file" style="display:none;" onchange="attachFile(event)" />
+                <span class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:.72rem;">📎 Attach</span>
+              </label>
+            </div>
+          </div>
+          <textarea class="reply-textarea" id="reply-input" placeholder="Type your reply to the customer…" rows="4"></textarea>
+          <div id="attach-list" style="padding:0 14px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <div class="reply-box-footer">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <select id="status-select" class="filter-select" onchange="onStatusChange(this.value)" style="font-size:.78rem;">
+                <option value="inprogress">In Progress</option>
+                <option value="waiting">Waiting on Customer</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="sendReply()" id="send-btn">
+              <svg viewBox="0 0 20 20" fill="none" style="width:12px;height:12px;"><path d="M17 3L3 9l6 2 2 6 6-14z" fill="white"/></svg>
+              Send Reply
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Timeline -->
+      <div class="card" style="padding:0;">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <h3 style="font-size:.9rem;">Ticket Timeline</h3>
+          <span class="badge badge-inprogress pulse-badge">In Progress</span>
+        </div>
+        <div style="padding:14px 16px;max-height:420px;overflow-y:auto;" id="tl-container">
+          <div class="timeline" id="timeline"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Canned Responses Panel ── -->
+<div class="canned-panel" id="canned-panel">
+  <div class="canned-header">
+    <h3 style="font-size:.95rem;">Canned Responses</h3>
+    <button class="modal-close" onclick="closeCannedPanel()">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="canned-search">
+    <div class="search-bar">
+      <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M15 15l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="search" id="canned-search" placeholder="Search templates…" oninput="filterCanned(this.value)" />
+    </div>
+  </div>
+  <div class="canned-list" id="canned-list"></div>
+</div>
+<div id="canned-backdrop" onclick="closeCannedPanel()" style="display:none;position:fixed;inset:0;z-index:399;background:rgba(0,0,0,0.3);backdrop-filter:blur(2px);"></div>
+
+<!-- ── Resolve Modal ── -->
+<div class="modal-overlay" id="resolve-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Mark as Resolved</h3>
+      <button class="modal-close" onclick="closeResolveModal()">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Resolution Summary <span style="color:#F87171;">*</span></label>
+        <textarea id="resolution-summary" placeholder="Briefly describe how the issue was resolved…" rows="4" style="min-height:100px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Resolution Category</label>
+        <select id="resolution-cat">
+          <option>Fixed — access point restarted/reconfigured</option>
+          <option>Fixed — driver/software update</option>
+          <option>Fixed — account/password reset</option>
+          <option>Workaround provided</option>
+          <option>Not reproducible</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeResolveModal()">Cancel</button>
+      <button class="btn btn-success" onclick="confirmResolve()" id="confirm-resolve-btn">
+        <svg viewBox="0 0 20 20" fill="none" style="width:14px;height:14px;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Confirm Resolution
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Escalate Modal ── -->
+<div class="modal-overlay" id="escalate-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3>Escalate Ticket</h3>
+      <button class="modal-close" onclick="document.getElementById('escalate-modal').classList.remove('open')">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Escalate to Department</label>
+        <select id="escalate-dept">
+          <option>Senior Network Engineer</option>
+          <option>Infrastructure Team</option>
+          <option>Security Team</option>
+          <option>Vendor Support (Cisco)</option>
+          <option>On-site IT Technician</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reason for Escalation</label>
+        <textarea id="escalate-reason" placeholder="Briefly explain why this needs escalation…" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('escalate-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-warning" onclick="confirmEscalate()">
+        <svg viewBox="0 0 20 20" fill="none" style="width:14px;height:14px;"><path d="M10 4v12M4 10l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Escalate
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+const currentUser = window.requireAuth(['agent', 'admin']);
+if (!currentUser) {
+  throw new Error('Unauthorized');
+}
+
+let replyMode = 'reply';
+const attachments = [];
+let currentTicket = null;
+
+function getQueryParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+function normalizeStatus(value) {
+  const status = String(value || '').toLowerCase();
+  if (status === 'in progress') return 'inprogress';
+  if (status === 'waiting') return 'waiting';
+  if (status === 'resolved') return 'resolved';
+  if (status === 'closed') return 'closed';
+  return status || 'open';
+}
+
+function getStatusForSelect(status) {
+  const normalized = normalizeStatus(status);
+  if (normalized === 'resolved') return 'resolved';
+  if (normalized === 'waiting') return 'waiting';
+  return 'inprogress';
+}
+
+function getStatusLabel(status) {
+  const normalized = normalizeStatus(status);
+  const map = { open: 'Open', inprogress: 'In Progress', waiting: 'Waiting', resolved: 'Resolved', closed: 'Closed' };
+  return map[normalized] || 'In Progress';
+}
+
+function formatRelative(value) {
+  return window.relativeTime ? window.relativeTime(value) : value;
+}
+
+function setInfoById(id, value, badgeClass = '') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value;
+  if (badgeClass) {
+    el.className = `badge ${badgeClass}`;
+  } else {
+    el.className = 'info-value';
+    el.removeAttribute('style');
+  }
+}
+
+function updateStepper(status) {
+  const normalized = normalizeStatus(status);
+  const steps = ['open', 'inprogress', 'resolved', 'closed'];
+  const currentIndex = { open: 0, inprogress: 1, waiting: 1, resolved: 2, closed: 3 };
+  steps.forEach((step, index) => {
+    const el = document.getElementById('step-' + step);
+    if (!el) return;
+    el.classList.toggle('done', index < currentIndex[normalized]);
+    el.classList.toggle('current', index === currentIndex[normalized]);
+  });
+}
+
+function renderTicket() {
+  if (!currentTicket) return;
+  const ticket = currentTicket;
+  document.getElementById('hdr-id').textContent = ticket.ticketId || ticket._id;
+  document.getElementById('tkt-title').textContent = ticket.title;
+  document.getElementById('tkt-id').textContent = ticket.ticketId || ticket._id;
+  document.getElementById('ws-title').textContent = ticket.title;
+  document.getElementById('reply-input').placeholder = replyMode === 'note' ? 'Add an internal note — Private, not visible to customer…' : 'Type your reply to the customer…';
+  document.getElementById('status-select').value = getStatusForSelect(ticket.status);
+  const isResolved = ticket.status === 'Resolved' || ticket.status === 'Closed';
+  const resolveBtn = document.getElementById('resolve-btn');
+  resolveBtn.disabled = isResolved;
+  resolveBtn.innerHTML = isResolved
+    ? '<svg viewBox="0 0 20 20" fill="none" style="width:13px;height:13px;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ✓ Resolved'
+    : '<svg viewBox="0 0 20 20" fill="none" style="width:13px;height:13px;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Mark as Resolved';
+
+  const customerInitials = (ticket.customerName || 'Customer').split(' ').slice(0, 2).map(part => part[0]).join('').toUpperCase();
+  const avatarEl = document.getElementById('customer-avatar');
+  if (avatarEl) avatarEl.textContent = customerInitials;
+
+  const nameEl = document.getElementById('customer-name');
+  if (nameEl) nameEl.textContent = ticket.customerName || 'Customer';
+
+  const emailEl = document.getElementById('customer-email');
+  if (emailEl) emailEl.textContent = ticket.customerEmail || '';
+
+  const descEl = document.getElementById('tkt-description');
+  if (descEl) descEl.textContent = ticket.description || 'No description provided.';
+
+  const attachEl = document.getElementById('tkt-attachments');
+  if (attachEl) {
+    attachEl.innerHTML = (ticket.attachments || []).length
+      ? ticket.attachments.map(file => `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface-2);border-radius:var(--radius);border:1px solid var(--border);"><span style="font-size:1rem;">📎</span><span style="font-size:.78rem;color:var(--text-secondary);flex:1;">${file}</span></div>`).join('')
+      : '<div style="font-size:.78rem;color:var(--text-muted);">No attachments.</div>';
+  }
+
+  setInfoById('info-priority', cap(ticket.priority || 'Medium'), `badge-${(ticket.priority || 'medium').toLowerCase()}`);
+  setInfoById('info-category', ticket.category || 'General', 'badge-category');
+  const sentimentLower = (ticket.sentiment || 'neutral').toLowerCase();
+  const sentEmoji = { positive: '😊 Positive', neutral: '😐 Neutral', negative: '😤 Frustrated' };
+  setInfoById('info-sentiment', sentEmoji[sentimentLower] || ticket.sentiment, `badge-sentiment-${sentimentLower}`);
+  setInfoById('info-created', formatRelative(ticket.createdAt));
+  const slaEl = document.getElementById('info-sla');
+  if (slaEl) {
+    slaEl.textContent = ticket.slaDeadline ? formatRelative(ticket.slaDeadline) : 'Not set';
+    slaEl.className = '';
+    slaEl.style.cssText = 'font-size:.78rem;font-weight:700;color:#FBBF24;';
+  }
+  setInfoById('info-assigned', ticket.assignedAgentName ? ticket.assignedAgentName : 'Unassigned');
+
+  // Render AI Analysis checklist from real ticket data
+  const aiChecklistEl = document.getElementById('ai-checklist');
+  if (aiChecklistEl) {
+    const steps = Array.isArray(ticket.aiSuggestedSolution) && ticket.aiSuggestedSolution.length
+      ? ticket.aiSuggestedSolution
+      : ['Review the customer description carefully', 'Check for related open tickets', 'Apply standard troubleshooting steps', 'Update the customer with findings', 'Mark resolved once confirmed'];
+    aiChecklistEl.innerHTML = steps.map(step => `
+      <div class="checklist-item" onclick="toggleCheck(this)">
+        <div class="check-box"></div>
+        <span class="check-text">${step}</span>
+      </div>`).join('');
+  }
+
+  // Update AI analysis badges
+  const aiBadgeRow = document.querySelector('.ai-badge-row');
+  if (aiBadgeRow) {
+    const conf = ticket.aiConfidence || 0;
+    const sentimentBadge = sentEmoji[sentimentLower] || ticket.sentiment;
+    aiBadgeRow.innerHTML = `
+      <span class="badge badge-category">${ticket.category || 'General'}</span>
+      <span class="badge badge-${(ticket.priority || 'medium').toLowerCase()}">${cap(ticket.priority || 'Medium')} Priority</span>
+      <span class="badge badge-sentiment-${sentimentLower}">${sentimentBadge}</span>
+      ${conf ? `<span class="badge" style="background:rgba(29,158,117,0.12);color:var(--accent);border-color:var(--accent-glow);">${conf}% Confidence</span>` : ''}`;
+  }
+
+  // Update workspace header subtitle
+  const wsSubEl = document.querySelector('.workspace-header > div > div[style*=".72rem"]');
+  if (wsSubEl) {
+    wsSubEl.textContent = `${ticket.ticketId || ticket._id} · ${ticket.category || 'General'} · Opened ${formatRelative(ticket.createdAt)}`;
+  }
+
+  // Update timeline badge in header
+  const tlBadge = document.querySelector('#tl-container')?.previousElementSibling?.querySelector('.badge-inprogress');
+  if (tlBadge) {
+    const st = normalizeStatus(ticket.status);
+    const labels = { open: 'Open', inprogress: 'In Progress', waiting: 'Waiting', resolved: 'Resolved', closed: 'Closed' };
+    tlBadge.className = `badge badge-${st}${st === 'inprogress' ? ' pulse-badge' : ''}`;
+    tlBadge.textContent = labels[st] || ticket.status;
+  }
+
+  // Update user initials in header avatar
+  const headerAvatars = document.querySelectorAll('[data-user-initials], .avatar.avatar-sm:not([style*="accent"])');
+  const agentInitials = (currentUser.name || 'AG').split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase();
+  headerAvatars.forEach(el => {
+    if (!el.textContent.trim() || el.textContent.trim().length <= 2) {
+      el.textContent = agentInitials;
+    }
+  });
+
+  updateStepper(ticket.status);
+  renderTimeline();
+}
+
+function renderTimeline() {
+  const container = document.getElementById('timeline');
+  if (!container) return;
+  const timeline = (currentTicket && currentTicket.timeline) || [];
+  // Sort by createdAt ascending so oldest events appear first
+  const sorted = [...timeline].sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+  container.innerHTML = sorted.length ? sorted.map(item => {
+    const isNote = item.action === 'internal_note';
+    const isResolved = item.action === 'resolved' || item.action === 'closed';
+    const isAccepted = item.action === 'accepted';
+    const isCustomer = item.actorType === 'customer';
+    const dotBg = isNote ? 'rgba(251,191,36,0.12)' : isResolved ? 'rgba(74,222,128,0.12)' : isCustomer ? 'rgba(14,165,233,0.15)' : 'rgba(96,165,250,0.15)';
+    const dotColor = isNote ? '#FBBF24' : isResolved ? '#4ADE80' : isCustomer ? '#0EA5E9' : '#60A5FA';
+    const dotIcon = isNote ? '📝' : isResolved ? '✅' : isAccepted ? '🎯' : isCustomer ? '👤' : item.action === 'created' ? '🆕' : item.action === 'escalated' ? '⬆️' : '💬';
+    const actionLabel = item.action === 'replied' ? 'replied' :
+      item.action === 'internal_note' ? 'added an internal note' :
+      item.action === 'accepted' ? 'accepted the ticket' :
+      item.action === 'resolved' ? 'marked the ticket as resolved' :
+      item.action === 'closed' ? 'closed the ticket' :
+      item.action === 'created' ? 'created the ticket' :
+      item.action === 'escalated' ? 'escalated the ticket' :
+      item.action === 'status_changed' ? 'changed the status' :
+      'updated the ticket';
+    const timeStr = item.createdAt ? (window.relativeTime ? window.relativeTime(item.createdAt) : new Date(item.createdAt).toLocaleString()) : '';
+    return `
+    <div class="tl-item">
+      <div class="tl-dot" style="background:${dotBg};color:${dotColor};font-size:.65rem;">${dotIcon}</div>
+      <div class="tl-content">
+        <div class="tl-action">${item.actorName || 'System'} ${actionLabel}</div>
+        <div class="tl-detail">${item.message || 'No detail provided.'}</div>
+        ${timeStr ? `<div class="tl-time">${timeStr}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('') : '<div style="color:var(--text-muted);font-size:.8rem;">No timeline entries yet.</div>';
+  // Scroll to bottom to show the latest entry
+  const tlContainer = document.getElementById('tl-container');
+  if (tlContainer) tlContainer.scrollTop = tlContainer.scrollHeight;
+}
+
+function setReplyMode(mode) {
+  replyMode = mode;
+  const ta = document.getElementById('reply-input');
+  const box = document.getElementById('reply-box');
+  const label = document.getElementById('reply-label');
+  document.getElementById('mode-reply').classList.toggle('active', mode === 'reply');
+  document.getElementById('mode-note').classList.toggle('active', mode === 'note');
+  ta.placeholder = mode === 'note' ? 'Add an internal note — Private, not visible to customer…' : 'Type your reply to the customer…';
+  box.classList.toggle('note-active', mode === 'note');
+  label.innerHTML = mode === 'note'
+    ? '<svg viewBox="0 0 20 20" fill="none" width="12" height="12"><path d="M9 9h6M9 13h4M5 3h10a2 2 0 012 2v12l-4-2H5a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="#FBBF24" stroke-width="1.5"/></svg> <span style="color:#FBBF24;">Internal Note — Private, not visible to customer</span>'
+    : '<svg viewBox="0 0 20 20" fill="none" width="12" height="12"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg> Reply — Visible to customer';
+}
+
+async function sendReply() {
+  const text = document.getElementById('reply-input').value.trim();
+  if (!text) {
+    showToast('Please type a reply before sending', 'warning');
+    return;
+  }
+  const btn = document.getElementById('send-btn');
+  btn.classList.add('btn-loading');
+  try {
+    await window.apiRequest(`/tickets/${currentTicket._id}/reply`, 'POST', { message: text, visibleToCustomer: replyMode === 'reply' });
+    document.getElementById('reply-input').value = '';
+    attachments.length = 0;
+    document.getElementById('attach-list').innerHTML = '';
+    await loadTicket();
+    showToast(replyMode === 'note' ? 'Internal note saved' : 'Reply sent', 'success');
+  } catch (error) {
+    showToast(error.message || 'Could not send reply', 'error');
+  } finally {
+    btn.classList.remove('btn-loading');
+  }
+}
+
+function attachFile(e) {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    attachments.push(file.name);
+    const chip = document.createElement('span');
+    chip.className = 'badge badge-ai';
+    chip.style.marginBottom = '8px';
+    chip.innerHTML = `📎 ${file.name} <span style="cursor:pointer;margin-left:4px;" onclick="this.parentElement.remove()">×</span>`;
+    document.getElementById('attach-list').appendChild(chip);
+  });
+  showToast(`${files.length} file(s) attached`, 'info');
+}
+
+async function onStatusChange(value) {
+  if (!currentTicket) return;
+  if (value === 'resolved') {
+    openResolveModal();
+    return;
+  }
+  try {
+    await window.apiRequest(`/tickets/${currentTicket._id}/status`, 'PATCH', { status: value === 'waiting' ? 'Waiting' : 'In Progress' });
+    await loadTicket();
+    showToast(`Status changed to ${getStatusLabel(value === 'waiting' ? 'Waiting' : 'In Progress')}`, 'success');
+  } catch (error) {
+    showToast(error.message || 'Could not update status', 'error');
+  }
+}
+
+function toggleCheck(item) {
+  item.classList.toggle('done');
+  const done = document.querySelectorAll('.checklist-item.done').length;
+  const total = document.querySelectorAll('.checklist-item').length;
+  if (done === total) showToast('All steps completed! Ready to resolve?', 'success');
+}
+
+function openResolveModal() { document.getElementById('resolve-modal').classList.add('open'); }
+function closeResolveModal() { document.getElementById('resolve-modal').classList.remove('open'); }
+
+async function confirmResolve() {
+  const summary = document.getElementById('resolution-summary').value.trim();
+  if (!summary) {
+    showToast('Please add a resolution summary', 'warning');
+    return;
+  }
+  const btn = document.getElementById('confirm-resolve-btn');
+  btn.classList.add('btn-loading');
+  try {
+    await window.apiRequest(`/tickets/${currentTicket._id}/status`, 'PATCH', { status: 'Resolved', resolutionSummary: summary });
+    await loadTicket();
+    closeResolveModal();
+    showToast('Ticket marked as resolved', 'success', 5000);
+  } catch (error) {
+    showToast(error.message || 'Could not resolve ticket', 'error');
+  } finally {
+    btn.classList.remove('btn-loading');
+  }
+}
+
+function openEscalate() { document.getElementById('escalate-modal').classList.add('open'); }
+async function confirmEscalate() {
+  const dept = document.getElementById('escalate-dept').value;
+  const reason = document.getElementById('escalate-reason').value.trim();
+  try {
+    await window.apiRequest(`/tickets/${currentTicket._id}/escalate`, 'PATCH', { department: dept, reason });
+    document.getElementById('escalate-modal').classList.remove('open');
+    await loadTicket();
+    showToast(`Ticket escalated to ${dept}`, 'warning');
+  } catch (error) {
+    showToast(error.message || 'Could not escalate ticket', 'error');
+  }
+}
+
+const CANNED = [
+  { cat: 'Network', title: 'Wi-Fi reconnect instructions', body: `Hi, please try the following steps to reconnect to the corporate Wi-Fi:\n1. Go to Settings > Wi-Fi and forget the network\n2. Reconnect and enter your corporate credentials\n3. Accept the certificate if prompted\nLet me know if this resolves the issue.` },
+  { cat: 'Network', title: 'VPN troubleshooting', body: `Hi, to fix VPN connectivity issues:\n1. Update your VPN client to the latest version\n2. Try connecting on a wired connection\n3. Restart your VPN client and try again\nI'll monitor the issue from our end.` },
+  { cat: 'Software', title: 'Outlook not syncing fix', body: `Hi, to fix Outlook sync issues:\n1. Go to File > Account Settings > Repair\n2. Delete and recreate your profile\n3. Clear the OST cache\nPlease reply once you've tried these steps.` },
+  { cat: 'Account', title: 'Password reset guide', body: `Hi, to reset your password:\n1. Visit the company portal and click "Forgot Password"\n2. Check your email for the reset link (including Spam)\n3. Set a new password with at least 12 characters\nLet me know if you need further help.` },
+  { cat: 'General', title: 'Acknowledgement & ETA', body: `Hi, thank you for contacting IT support. I've received your request and am investigating the issue. I'll update you within 2 hours with a resolution or progress update.` },
+  { cat: 'General', title: 'Request for more information', body: `Hi, could you please provide a bit more information to help me investigate:\n1. What device/OS are you using?\n2. When did this issue start?\n3. Has anything changed recently (updates, password changes)?\nThank you!` },
+];
+
+function renderCanned(filter) {
+  const q = (filter || '').toLowerCase();
+  const cats = [...new Set(CANNED.map(item => item.cat))];
+  const filtered = q ? CANNED.filter(item => item.title.toLowerCase().includes(q) || item.cat.toLowerCase().includes(q)) : CANNED;
+  const grouped = cats.map(cat => ({ cat, items: filtered.filter(item => item.cat === cat) })).filter(group => group.items.length);
+  document.getElementById('canned-list').innerHTML = grouped.map(group => `
+    <div class="canned-category">${group.cat}</div>
+    ${group.items.map(item => `
+      <div class="canned-item">
+        <div class="canned-item-title">${item.title}</div>
+        <div class="canned-item-preview">${item.body}</div>
+        <div style="margin-top:8px;text-align:right;">
+          <button class="btn btn-primary btn-sm" onclick='insertCanned(${JSON.stringify(item.body)})'>Insert</button>
+        </div>
+      </div>`).join('')}
+  `).join('') || '<div style="padding:32px;text-align:center;color:var(--text-muted);">No templates found</div>';
+}
+
+function filterCanned(q) { renderCanned(q); }
+function insertCanned(body) {
+  document.getElementById('reply-input').value = body;
+  closeCannedPanel();
+  showToast('Template inserted', 'success');
+}
+function openCannedPanel() { document.getElementById('canned-panel').classList.add('open'); document.getElementById('canned-backdrop').style.display = 'block'; renderCanned(); }
+function closeCannedPanel() { document.getElementById('canned-panel').classList.remove('open'); document.getElementById('canned-backdrop').style.display = 'none'; }
+
+async function loadTicket() {
+  const id = getQueryParam('id');
+  if (!id) {
+    showToast('No ticket selected', 'error');
+    return;
+  }
+  try {
+    // Direct fetch by ID — no need to list all tickets first
+    const data = await window.apiRequest(`/tickets/${encodeURIComponent(id)}`, 'GET');
+    if (!data.ticket) throw new Error('Ticket not found');
+    currentTicket = data.ticket;
+    renderTicket();
+    // Fetch real previous-ticket stats for this customer
+    const statsEl = document.getElementById('customer-ticket-stats');
+    if (statsEl && currentTicket.customerId) {
+      try {
+        const custData = await window.apiRequest(`/tickets/customer/${encodeURIComponent(currentTicket.customerId)}`, 'GET');
+        const allTickets = custData.tickets || [];
+        const total = allTickets.length;
+        const unresolved = allTickets.filter(t => {
+          const s = (t.status || '').toLowerCase();
+          return s !== 'resolved' && s !== 'closed';
+        }).length;
+        statsEl.style.display = '';
+        statsEl.textContent = `${total} previous ticket${total === 1 ? '' : 's'} · ${unresolved} unresolved`;
+      } catch (_) {
+        // If fetch fails, hide the stat rather than show stale data
+        if (statsEl) statsEl.style.display = 'none';
+      }
+    }
+  } catch (error) {
+    showToast(error.message || 'Could not load ticket', 'error');
+  }
+}
+
+const socket = window.initSocket();
+if (socket) {
+  socket.on('ticket:statusChanged', loadTicket);
+  socket.on('ticket:newReply', loadTicket);
+}
+
+renderCanned();
+initCommandPalette();
+loadTicket();
+</script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile – TicketPilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <style>
+    .profile-avatar-wrap {
+      display:flex;align-items:center;gap:18px;margin-bottom:28px;
+      padding-bottom:24px;border-bottom:1px solid var(--border);
+    }
+    .profile-avatar {
+      width:72px;height:72px;border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),#0EA5E9);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.6rem;font-weight:800;color:#fff;
+      flex-shrink:0;
+    }
+    .profile-avatar-info h3 { font-size:1.1rem;font-weight:700;margin-bottom:3px; }
+    .profile-avatar-info p  { font-size:.82rem;color:var(--text-muted); }
+    .form-section { margin-bottom:28px; }
+    .form-section-title { font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:14px; }
+    .save-indicator { display:none;font-size:.8rem;color:var(--accent);font-weight:600;margin-left:12px; }
+    .save-indicator.show { display:inline; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="user-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="my-tickets.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        My Tickets
+      </a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Profile
+      </a>
+      <a href="settings.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Settings
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,var(--accent),#0EA5E9);">??</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Loading…</div>
+          <div class="sidebar-user-role">Customer</div>
+        </div>
+      </div>
+      <a href="#" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:7px 10px;border-radius:var(--radius);margin-top:4px;text-decoration:none;transition:var(--transition);" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='none'" onclick="window.logout(); return false;">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M8 5l-5 5 5 5M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sign out
+      </a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb">
+          <a href="user-dashboard.html" style="color:var(--text-muted)">Dashboard</a>
+          <span class="breadcrumb-sep">/</span>
+          <span class="topbar-title">Profile</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme" onclick="window.toggleDarkMode()">
+          <span class="icon-sun"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span class="icon-moon"><svg viewBox="0 0 20 20" fill="none"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        </button>
+        <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--accent),#0EA5E9);">??</div>
+      </div>
+    </header>
+
+    <div class="page-body" style="max-width:640px;">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>My Profile</h2>
+          <p>Manage your account information and preferences.</p>
+        </div>
+      </div>
+
+      <!-- Avatar + identity summary -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" id="profile-avatar-display">??</div>
+          <div class="profile-avatar-info">
+            <h3 id="profile-name-display">Loading…</h3>
+            <p id="profile-email-display">—</p>
+            <span class="badge badge-category" id="profile-role-badge" style="margin-top:5px;">Customer</span>
+          </div>
+        </div>
+
+        <!-- Editable name -->
+        <div class="form-section">
+          <div class="form-section-title">Personal Information</div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="form-group">
+              <label for="profile-name-input">Full Name</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input type="text" id="profile-name-input" placeholder="Your full name" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="profile-email-input">Email address <span style="color:var(--text-muted);font-size:.78rem;">(read-only)</span></label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 6.667L10 11.25l7.5-4.583" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="2.5" y="4.167" width="15" height="11.667" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <input type="email" id="profile-email-input" readonly style="opacity:.6;cursor:default;" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password change -->
+        <div class="form-section">
+          <div class="form-section-title">Change Password <span style="font-size:.72rem;color:var(--text-muted);font-weight:400;">(optional)</span></div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="form-group">
+              <label for="profile-new-pass">New password</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input type="password" id="profile-new-pass" placeholder="Leave blank to keep current" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="profile-confirm-pass">Confirm new password</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input type="password" id="profile-confirm-pass" placeholder="Confirm new password" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding-top:4px;">
+          <button class="btn btn-primary" id="save-btn" onclick="saveProfile()">Save changes</button>
+          <span class="save-indicator" id="save-indicator">Saved!</span>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="card">
+        <div class="form-section-title" style="color:#F87171;">Danger zone</div>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:14px;">Signing out will clear your session. Your data is safe and available when you log back in.</p>
+        <button class="btn btn-danger" onclick="doSignOut()">Sign out of TicketPilot</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+<script src="js/app.js"></script>
+<script src="js/api.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+initChatWidget();
+
+let _currentUser = null;
+
+function loadProfile() {
+  _currentUser = window.requireAuth ? window.requireAuth() : window.getCurrentUser ? window.getCurrentUser() : null;
+  if (!_currentUser) { window.location.href = 'index.html'; return; }
+
+  const name     = _currentUser.name  || '';
+  const email    = _currentUser.email || '';
+  const role     = _currentUser.role  || 'customer';
+  const initials = name.trim().split(/\s+/).slice(0,2).map(p => p[0]).join('').toUpperCase() || '??';
+  const roleLabel = { customer:'Customer', user:'Customer', agent:'Support Agent', admin:'Administrator' }[role] || role;
+
+  // Avatar display
+  document.getElementById('profile-avatar-display').textContent = initials;
+  document.getElementById('profile-name-display').textContent   = name;
+  document.getElementById('profile-email-display').textContent  = email;
+  document.getElementById('profile-role-badge').textContent     = roleLabel;
+
+  // Form values
+  document.getElementById('profile-name-input').value  = name;
+  document.getElementById('profile-email-input').value = email;
+
+  // Topbar avatar
+  const topbarAvatar = document.querySelector('.topbar-right .avatar');
+  if (topbarAvatar) topbarAvatar.textContent = initials;
+
+  // Sidebar avatar
+  const sidebarAvatar = document.querySelector('.sidebar-user .avatar');
+  if (sidebarAvatar) sidebarAvatar.textContent = initials;
+  const sidebarName = document.querySelector('.sidebar-user-name');
+  if (sidebarName) sidebarName.textContent = name;
+  const sidebarRole = document.querySelector('.sidebar-user-role');
+  if (sidebarRole) sidebarRole.textContent = roleLabel;
+}
+
+async function saveProfile() {
+  const newName  = document.getElementById('profile-name-input').value.trim();
+  const newPass  = document.getElementById('profile-new-pass').value;
+  const confPass = document.getElementById('profile-confirm-pass').value;
+
+  if (!newName) { showToast('Name cannot be empty.', 'error'); return; }
+  if (newPass && newPass !== confPass) { showToast('Passwords do not match.', 'error'); return; }
+  if (newPass) { showToast('Password change is not yet supported — name saved only.', 'info'); }
+
+  const btn = document.getElementById('save-btn');
+  btn.classList.add('btn-loading'); btn.disabled = true;
+
+  try {
+    const data = await window.apiRequest('/users/me', 'PATCH', { name: newName });
+    // Update cached user
+    const updated = { ..._currentUser, name: newName };
+    window.setCurrentUser(updated, null);
+    _currentUser = updated;
+
+    // Refresh display
+    loadProfile();
+
+    // Show success
+    const ind = document.getElementById('save-indicator');
+    ind.classList.add('show');
+    setTimeout(() => ind.classList.remove('show'), 2500);
+    showToast('Profile updated successfully.', 'success');
+
+    // Clear password fields
+    document.getElementById('profile-new-pass').value    = '';
+    document.getElementById('profile-confirm-pass').value = '';
+  } catch (err) {
+    showToast(err.message || 'Failed to save profile.', 'error');
+  } finally {
+    btn.classList.remove('btn-loading'); btn.disabled = false;
+  }
+}
+
+function doSignOut() {
+  window.logout();
+}
+
+document.addEventListener('DOMContentLoaded', loadProfile);
+</script>
+</body>
+</html>

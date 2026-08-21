@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket Detail – TicketPilot</title>
+  <meta name="description" content="View your ticket status, AI-suggested solution, and department assignment." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    /* ── Layout ── */
+    .detail-grid { display:grid; grid-template-columns:1fr 300px; gap:20px; }
+    @media(max-width:768px) { .detail-grid { grid-template-columns:1fr; } }
+
+    /* ── Stepper ── */
+    .stepper-card  { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px; margin-bottom:18px; }
+    .stepper-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); margin-bottom:14px; }
+
+    /* ── AI solution panel ── */
+    .ai-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; }
+    .ai-panel-header {
+      padding:14px 20px; border-bottom:1px solid var(--border);
+      background:var(--surface-2); display:flex; align-items:center; gap:10px;
+    }
+    .ai-pulse { display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--accent); font-weight:700; }
+    .ai-pulse-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+    .ai-panel-body { padding:22px; }
+
+    /* Classification badges */
+    .badge-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+
+    /* Solution card */
+    .solution-card {
+      background:linear-gradient(135deg, rgba(29,158,117,.07), rgba(14,165,233,.05));
+      border:1px solid rgba(29,158,117,.25);
+      border-radius:var(--radius-md); padding:20px; margin-bottom:20px;
+    }
+    .solution-card h4 {
+      font-size:.95rem; font-weight:700; color:var(--accent);
+      margin-bottom:14px; display:flex; align-items:center; gap:6px;
+    }
+    .solution-step  { display:flex; align-items:flex-start; gap:12px; margin-bottom:12px; }
+    .solution-step:last-child { margin-bottom:0; }
+    .step-num {
+      min-width:24px; height:24px; border-radius:50%;
+      background:var(--accent); color:#fff;
+      font-size:.72rem; font-weight:700;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .step-text { font-size:.875rem; color:var(--text-secondary); line-height:1.55; padding-top:3px; }
+
+    /* Action buttons */
+    .action-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+    .action-row .btn { flex:1; min-width:140px; justify-content:center; }
+
+    /* Department block */
+    .dept-card {
+      background:var(--surface-2); border:1px solid var(--border);
+      border-radius:var(--radius-md); padding:16px;
+      display:flex; align-items:center; gap:14px; margin-top:6px;
+    }
+    .dept-icon-wrap {
+      width:44px; height:44px; border-radius:var(--radius);
+      background:rgba(29,158,117,.12);
+      display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0;
+    }
+    .dept-name { font-weight:600; font-size:.9rem; color:var(--text-primary); }
+    .dept-meta { font-size:.78rem; color:var(--text-muted); margin-top:2px; }
+    .dept-meta strong { color:var(--text-secondary); }
+
+    /* Human escalation banner */
+    .human-banner {
+      background:rgba(96,165,250,.08); border:1px solid rgba(96,165,250,.25);
+      border-radius:var(--radius); padding:12px 16px; margin-top:14px;
+      font-size:.82rem; color:#60A5FA; font-weight:500;
+      display:flex; align-items:center; gap:8px;
+    }
+    .human-banner svg { width:14px; height:14px; flex-shrink:0; }
+
+    /* Reply thread (only for escalated tickets with real messages) */
+    .reply-thread { margin-top:20px; padding-top:20px; border-top:1px solid var(--border); }
+    .reply-thread-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); margin-bottom:14px; }
+    .reply-input-row { display:flex; gap:8px; align-items:flex-end; margin-top:12px; }
+    .reply-input-row textarea {
+      flex:1; background:var(--surface-2); border:1.5px solid var(--border);
+      border-radius:var(--radius-md); padding:9px 12px; font-size:.82rem;
+      resize:none; outline:none; min-height:44px; color:var(--text-primary);
+    }
+
+    /* ── Sidebar ── */
+    .detail-sidebar { display:flex; flex-direction:column; gap:14px; }
+    .detail-info-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; }
+    .detail-info-card-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); margin-bottom:10px; }
+    .detail-info-row { display:flex; align-items:center; justify-content:space-between; font-size:.82rem; padding:6px 0; border-bottom:1px solid var(--border); }
+    .detail-info-row:last-child { border-bottom:none; padding-bottom:0; }
+    .detail-info-label { color:var(--text-muted); }
+    .detail-info-value { font-weight:600; }
+
+    /* Rating widget */
+    .rating-card { background:rgba(29,158,117,0.06); border:1.5px solid var(--accent); border-radius:var(--radius-md); padding:16px; }
+    .star-row { display:flex; gap:6px; margin:10px 0; justify-content:center; }
+    .star-btn { width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; cursor:pointer; border:none; background:none; transition:transform .12s; }
+    .star-btn:hover { transform:scale(1.2); }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="user-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="my-tickets.html" class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        My Tickets
+        <span class="nav-badge" id="nav-badge">0</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,var(--accent),#0EA5E9);">??</div>
+        <div><div class="sidebar-user-name">Loading…</div><div class="sidebar-user-role">Customer</div></div>
+      </div>
+      <a href="profile.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;">Profile</a>
+      <a href="settings.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;">Settings</a>
+      <a href="#" style="display:flex;align-items:center;gap:8px;color:#F87171;font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;" onclick="window.logout(); return false;">Sign out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="user-dashboard.html" style="display:flex;align-items:center;gap:5px;color:var(--text-muted);font-size:.82rem;text-decoration:none;">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Dashboard
+        </a>
+        <span style="color:var(--border);margin:0 5px;">/</span>
+        <span style="font-size:.82rem;color:var(--text-primary);font-weight:600;" id="breadcrumb-id">Loading…</span>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme" onclick="window.toggleDarkMode()">
+          <span class="icon-sun"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span class="icon-moon"><svg viewBox="0 0 20 20" fill="none"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        </button>
+        <div class="avatar avatar-sm" onclick="location.href='profile.html'" style="cursor:pointer;" data-user-initials>??</div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <!-- Confirmation Banner (shown when created=true in URL) -->
+      <div id="creation-confirmation-banner" style="display:none;background:rgba(29,158,117,0.10);border:1.5px solid var(--accent);border-radius:var(--radius-md);padding:16px 20px;margin-bottom:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:1.05rem;color:var(--text-primary);" id="banner-ticket-id">Ticket Created</div>
+            <div style="font-size:.82rem;color:var(--text-secondary);margin-top:2px;">Your issue has been logged and routed to our team.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <a href="user-dashboard.html" class="btn btn-ghost btn-sm">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+            Dashboard
+          </a>
+          <a href="my-tickets.html" class="btn btn-secondary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            View My Tickets
+          </a>
+          <a href="create-ticket.html" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            + New Ticket
+          </a>
+        </div>
+      </div>
+      <!-- Page header -->
+      <div class="page-header" style="margin-bottom:14px;">
+        <div class="page-header-left">
+          <h2 id="ticket-title">Loading…</h2>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <span style="font-family:monospace;font-size:.78rem;color:var(--text-muted);" id="ticket-id-display"></span>
+            <span class="badge" id="ticket-status-badge"></span>
+            <span class="badge" id="ticket-priority-badge"></span>
+            <span class="badge badge-category" id="ticket-cat-badge"></span>
+          </div>
+        </div>
+        <!-- Mark solved from detail page (only for open tickets) -->
+        <div class="page-header-right" id="header-actions"></div>
+      </div>
+
+      <!-- Progress stepper -->
+      <div class="stepper-card">
+        <div class="stepper-title">Progress</div>
+        <div class="status-timeline" id="ticket-stepper"></div>
+      </div>
+
+      <div class="detail-grid">
+        <!-- ── Main: AI solution panel ── -->
+        <div>
+          <div class="ai-panel">
+            <div class="ai-panel-header">
+              <div class="ai-pulse">
+                <div class="ai-pulse-dot"></div>
+                AI Analysis Complete
+              </div>
+            </div>
+
+            <div class="ai-panel-body">
+              <!-- Classification section -->
+              <div style="margin-bottom:20px;">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:10px;">AI Classification</div>
+                <div class="badge-row" id="ai-badges"></div>
+              </div>
+
+              <!-- Suggested solution -->
+              <div id="solution-section">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:10px;">💡 AI Suggested Solution</div>
+                <div class="solution-card">
+                  <h4>🔧 Troubleshooting Steps</h4>
+                  <div id="solution-steps"></div>
+                </div>
+              </div>
+
+              <!-- Department assignment -->
+              <div id="dept-section">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:10px;">Department Assignment</div>
+                <div class="dept-card">
+                  <div class="dept-icon-wrap" id="dept-icon">🖥</div>
+                  <div>
+                    <div class="dept-name" id="dept-name">IT Support</div>
+                    <div class="dept-meta">Expected response: <strong id="dept-sla">2-4 hours</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action buttons (visible for open tickets only) -->
+              <div class="action-row" id="ticket-actions" style="display:none;">
+                <button class="btn btn-success" onclick="markTicketSolved()">
+                  <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  That Solved My Issue
+                </button>
+                <button class="btn btn-secondary" onclick="requestHuman()">
+                  <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  Request Human Help
+                </button>
+              </div>
+
+              <!-- Human escalation banner (injected by requestHuman()) -->
+              <div id="human-banner-slot"></div>
+
+              <!-- Reply thread — only real messages saved by the user, never pre-filled -->
+              <div class="reply-thread" id="reply-thread" style="display:none;">
+                <div class="reply-thread-title">Your messages</div>
+                <div id="message-list"></div>
+                <div class="reply-input-row">
+                  <textarea id="customer-reply" placeholder="Add a message or update…" rows="2"></textarea>
+                  <button class="chat-send-btn" onclick="sendReply()" style="width:38px;height:38px;">
+                    <svg viewBox="0 0 20 20" fill="none"><path d="M17 3L3 9l6 2 2 6 6-14z" fill="white"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Sidebar: Ticket Info + Rating + AI Summary ── -->
+        <div class="detail-sidebar">
+          <div class="detail-info-card">
+            <div class="detail-info-card-title">Ticket info</div>
+            <div class="detail-info-row"><span class="detail-info-label">ID</span><span class="detail-info-value font-mono" id="info-id" style="font-size:.75rem;"></span></div>
+            <div class="detail-info-row"><span class="detail-info-label">Status</span><span id="info-status" class="badge"></span></div>
+            <div class="detail-info-row"><span class="detail-info-label">Priority</span><span id="info-priority" class="badge"></span></div>
+            <div class="detail-info-row"><span class="detail-info-label">Category</span><span id="info-cat" class="badge badge-category"></span></div>
+            <div class="detail-info-row"><span class="detail-info-label">Department</span><span class="detail-info-value" id="info-dept"></span></div>
+            <div class="detail-info-row"><span class="detail-info-label">Opened</span><span class="detail-info-value" id="info-opened" style="font-size:.75rem;"></span></div>
+          </div>
+
+          <!-- Rating (shown when resolved/closed) -->
+          <div class="rating-card" id="rating-section" style="display:none;">
+            <div style="font-size:.82rem;font-weight:700;color:var(--accent);margin-bottom:4px;">Was this resolved?</div>
+            <div style="font-size:.78rem;color:var(--text-secondary);margin-bottom:8px;">Rate your experience</div>
+            <div class="star-row" id="star-row">
+              <button class="star-btn" onclick="rateStar(1)">☆</button>
+              <button class="star-btn" onclick="rateStar(2)">☆</button>
+              <button class="star-btn" onclick="rateStar(3)">☆</button>
+              <button class="star-btn" onclick="rateStar(4)">☆</button>
+              <button class="star-btn" onclick="rateStar(5)">☆</button>
+            </div>
+            <textarea id="rating-comment" style="width:100%;background:var(--surface);border:1px solid rgba(29,158,117,0.3);border-radius:var(--radius);padding:8px;font-size:.78rem;resize:none;min-height:60px;outline:none;color:var(--text-primary);" placeholder="Optional: add a comment…"></textarea>
+            <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:8px;" onclick="submitRating()">Submit rating</button>
+          </div>
+
+          <!-- AI description summary -->
+          <div class="detail-info-card" style="font-size:.78rem;">
+            <div class="detail-info-card-title">Your description</div>
+            <div style="color:var(--text-secondary);line-height:1.6;" id="ai-summary">—</div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text-muted);">
+              <svg width="10" height="10" viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              AI-classified on submission
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+const AI_SOLUTIONS = {
+  network: { category:'Network', dept:'Network Team', deptIcon:'📡', sla:'1-2 hours', steps:['Check if other devices can connect to the network.','Restart your router/switch by unplugging for 30 seconds.','Ensure your network cable is securely connected or try a different cable.','Run Windows Network Diagnostics: Right-click network icon → Troubleshoot.','Contact the Network Team if the issue persists after these steps.'] },
+  software: { category:'Software', dept:'IT Support', deptIcon:'💻', sla:'2-4 hours', steps:['Restart the application and your computer.','Check for pending software updates.','Clear the application cache or reinstall if needed.','Run as Administrator if permission issues occur.','Document the exact error message and share with IT Support.'] },
+  account: { category:'Account', dept:'IT Support', deptIcon:'🔑', sla:'30-60 min', steps:['Use the "Forgot Password" link on the login page.','Check your spam folder for the reset email.','Ensure you\'re using the correct email address.','Clear browser cookies and cache, then try again.','Contact IT Support if you still cannot access your account.'] },
+  hr: { category:'HR', dept:'Human Resources', deptIcon:'👥', sla:'1 business day', steps:['Check the HR portal for self-service options.','Review your employee handbook for relevant policies.','Submit your query through the HR helpdesk portal if available.','Contact your HR Business Partner directly for urgent matters.'] },
+  finance: { category:'Finance', dept:'Finance Team', deptIcon:'💰', sla:'4-8 hours', steps:['Review your payment confirmation email for reference number.','Check your bank statement for transaction details.','Log into the payment portal to verify transaction status.','Contact Finance with your reference number for investigation.'] },
+  default: { category:'General', dept:'IT Support', deptIcon:'🎧', sla:'2-4 hours', steps:['Restart your device and try again.','Ensure all recent updates are installed.','Check if others in your team are experiencing the same issue.','Document the steps to reproduce the problem.','Contact IT Support with detailed information.'] }
+};
+
+function detectCategory(title, desc) {
+  const text = (title + ' ' + desc).toLowerCase();
+  if (/wifi|wi-fi|network|internet|connectivity|connection/.test(text)) return 'network';
+  if (/software|app|crash|error|install|update/.test(text)) return 'software';
+  if (/password|login|account|access|locked/.test(text)) return 'account';
+  if (/salary|leave|payroll|hr|holiday/.test(text)) return 'hr';
+  if (/payment|invoice|billing|finance/.test(text)) return 'finance';
+  return 'default';
+}
+
+function detectSentiment(desc) {
+  const t = (desc||'').toLowerCase();
+  if (/frustrated|angry|terrible|worst|unacceptable|urgent/.test(t)) return 'negative';
+  if (/thanks|great|good|appreciate|helpful/.test(t)) return 'positive';
+  return 'neutral';
+}
+
+const STATUS_LABEL = { open:'Open', inprogress:'In Progress', resolved:'Resolved', closed:'Closed', waiting:'Waiting' };
+let _currentTicket = null;
+
+async function loadTicket() {
+  const params = new URLSearchParams(window.location.search);
+  const ticketId = params.get('id');
+
+  if (!ticketId) {
+    document.getElementById('ticket-title').textContent = 'No ticket ID provided';
+    return;
+  }
+
+  try {
+    const data = await window.apiRequest(`/tickets/${encodeURIComponent(ticketId)}`, 'GET');
+    const ticket = data.ticket;
+    if (!ticket) {
+      document.getElementById('ticket-title').textContent = 'Ticket not found';
+      document.getElementById('breadcrumb-id').textContent = ticketId;
+      document.getElementById('ticket-id-display').textContent = ticketId;
+      return;
+    }
+
+    _currentTicket = ticket;
+    const title = ticket.title || ticket.subject || ticketId;
+    document.getElementById('ticket-title').textContent = title;
+    const displayId = ticket.ticketId || ticket.id || ticketId;
+    document.getElementById('ticket-id-display').textContent = displayId;
+    document.getElementById('breadcrumb-id').textContent = displayId;
+    document.title = displayId + ' – TicketPilot';
+
+    const isCreated = params.get('created') === 'true' || params.get('created') === '1';
+    if (isCreated) {
+      const banner = document.getElementById('creation-confirmation-banner');
+      const bannerId = document.getElementById('banner-ticket-id');
+      if (bannerId) bannerId.textContent = `Ticket Created — ${displayId}`;
+      if (banner) banner.style.display = 'flex';
+    }
+
+    const st = window.normalizeTicketStatus(ticket.status);
+    const pri = (ticket.priority || 'medium').toLowerCase();
+    const sb = document.getElementById('ticket-status-badge');
+    sb.className = 'badge badge-' + st + (st === 'inprogress' ? ' pulse-badge' : '');
+    sb.textContent = STATUS_LABEL[st] || st;
+
+    const pb = document.getElementById('ticket-priority-badge');
+    pb.className = 'badge badge-' + pri;
+    pb.textContent = (pri.charAt(0).toUpperCase() + pri.slice(1)) + ' priority';
+
+    document.getElementById('ticket-cat-badge').textContent = ticket.category || 'General';
+
+    document.getElementById('info-id').textContent = displayId;
+    const si = document.getElementById('info-status');
+    si.className = 'badge badge-' + st;
+    si.textContent = STATUS_LABEL[st] || st;
+    const pi = document.getElementById('info-priority');
+    pi.className = 'badge badge-' + pri;
+    pi.textContent = pri.charAt(0).toUpperCase() + pri.slice(1);
+    document.getElementById('info-cat').textContent = ticket.category || 'General';
+    document.getElementById('info-dept').textContent = ticket.department || '—';
+    document.getElementById('info-opened').textContent = ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : 'Unknown';
+
+    const desc = ticket.description || '';
+    const summaryEl = document.getElementById('ai-summary');
+    summaryEl.textContent = desc ? (desc.length > 300 ? desc.substring(0, 300) + '…' : desc) : 'No description provided.';
+
+    const catKey = ticket.aiCategoryKey || detectCategory(title, desc);
+    const sentiment = ticket.sentiment ? ticket.sentiment.toLowerCase() : detectSentiment(desc);
+    const sol = ticket.aiSolution || AI_SOLUTIONS[catKey] || AI_SOLUTIONS.default;
+    const sentEmoji = { positive:'😊 Positive', neutral:'😐 Neutral', negative:'😟 Negative' };
+    document.getElementById('ai-badges').innerHTML = `
+      <span class="badge badge-category">🏷 ${sol.category}</span>
+      <span class="badge badge-${pri}">${pri.charAt(0).toUpperCase() + pri.slice(1)}</span>
+      <span class="badge badge-sentiment-${sentiment}">${sentEmoji[sentiment] || sentiment}</span>`;
+
+    const steps = Array.isArray(ticket.aiSuggestedSolution) && ticket.aiSuggestedSolution.length ? ticket.aiSuggestedSolution : (Array.isArray(sol.steps) ? sol.steps : AI_SOLUTIONS.default.steps);
+    document.getElementById('solution-steps').innerHTML = steps.map((s, i) => `
+      <div class="solution-step">
+        <div class="step-num">${i + 1}</div>
+        <div class="step-text">${s}</div>
+      </div>`).join('');
+
+    document.getElementById('dept-icon').textContent = sol.deptIcon || '🎧';
+    document.getElementById('dept-name').textContent = ticket.department || sol.dept || 'IT Support';
+    document.getElementById('dept-sla').textContent = sol.sla || '2-4 hours';
+
+    const isOpen = !['resolved', 'closed'].includes(st);
+    document.getElementById('ticket-actions').style.display = isOpen ? 'flex' : 'none';
+    document.getElementById('reply-thread').style.display = isOpen ? 'block' : 'none';
+    document.getElementById('rating-section').style.display = isOpen ? 'none' : 'block';
+
+    renderMessages(ticket.replies || []);
+    renderStepper();
+  } catch (error) {
+    window.showToast?.(error.message || 'Could not load ticket', 'error');
+  }
+}
+
+function renderStepper() {
+  const steps = ['Open', 'Assigned', 'In progress', 'Resolved'];
+  const statusIdx = { open: 0, inprogress: 2, waiting: 2, resolved: 3, closed: 3 };
+  const ticketId = new URLSearchParams(window.location.search).get('id');
+  const st = _currentTicket ? window.normalizeTicketStatus(_currentTicket.status) : 'open';
+  const current = statusIdx[st] ?? 0;
+  const el = document.getElementById('ticket-stepper');
+  el.innerHTML = steps.map((s, i) => `
+    <div class="timeline-step ${i < current ? 'done' : i === current ? 'current' : ''}">
+      <div class="timeline-dot">${i < current ? '✓' : i + 1}</div>
+      <div class="timeline-label">${s}</div>
+    </div>`).join('');
+}
+
+async function markTicketSolved() {
+  if (!_currentTicket) return;
+  try {
+    await window.apiRequest(`/tickets/${encodeURIComponent(_currentTicket._id)}/customer-resolve`, 'PATCH');
+    window.showToast?.('🎉 Ticket marked as resolved!', 'success');
+    await loadTicket();
+  } catch (error) {
+    window.showToast?.(error.message || 'Could not update ticket', 'error');
+  }
+}
+
+function requestHuman() {
+  const slot = document.getElementById('human-banner-slot');
+  if (slot.querySelector('.human-banner')) return;
+  slot.innerHTML = `
+    <div class="human-banner">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Request submitted — a human agent will contact you within the expected response time.
+    </div>`;
+  window.showToast?.('Human agent request submitted', 'info');
+}
+
+function renderMessages(replies) {
+  const listEl = document.getElementById('message-list');
+  const msgs = Array.isArray(replies) ? replies : [];
+  if (!msgs.length) {
+    listEl.innerHTML = '<div style="font-size:.8rem;color:var(--text-muted);padding:6px 0 10px;">No messages yet. Use the box below to add an update.</div>';
+    return;
+  }
+  listEl.innerHTML = msgs.map(m => {
+    const isUser = m.senderType === 'customer';
+    return `
+      <div class="chat-msg ${isUser ? 'user' : 'bot'}" style="margin-bottom:10px;">
+        <div class="avatar msg-avatar" style="background:${isUser ? 'linear-gradient(135deg,var(--accent),#0EA5E9)' : 'var(--surface-2)'};width:26px;height:26px;font-size:.6rem;border:1px solid var(--border);">
+          ${isUser ? 'Me' : 'AI'}
+        </div>
+        <div>
+          <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:3px;${isUser ? 'text-align:right;' : ''}">${isUser ? 'You' : (m.senderName || 'Support')} · ${m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Just now'}</div>
+          <div class="msg-bubble" style="${isUser ? 'background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);border-radius:14px 4px 14px 14px;' : ''}">${m.message}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function sendReply() {
+  const textarea = document.getElementById('customer-reply');
+  const text = textarea.value.trim();
+  if (!text || !_currentTicket) return;
+  try {
+    await window.apiRequest(`/tickets/${encodeURIComponent(_currentTicket._id)}/reply`, 'POST', { message: text, visibleToCustomer: true });
+    textarea.value = '';
+    await loadTicket();
+    window.showToast?.('Message added', 'success');
+  } catch (error) {
+    window.showToast?.(error.message || 'Could not send reply', 'error');
+  }
+}
+
+let selectedStar = 0;
+function rateStar(n) {
+  selectedStar = n;
+  document.querySelectorAll('.star-btn').forEach((btn, i) => {
+    btn.textContent = i < n ? '★' : '☆';
+    btn.style.color = i < n ? '#FBBF24' : '';
+  });
+}
+function submitRating() {
+  if (!selectedStar) { window.showToast?.('Please select a star rating', 'warning'); return; }
+  window.showToast?.('Thank you for your feedback!', 'success');
+  document.getElementById('rating-section').style.display = 'none';
+}
+
+function bindSocketUpdates() {
+  const socket = window.initSocket();
+  if (!socket) return;
+  socket.off('ticket:statusChanged');
+  socket.off('ticket:newReply');
+  socket.on('ticket:statusChanged', () => loadTicket());
+  socket.on('ticket:newReply', () => loadTicket());
+}
+
+window.requireAuth?.(['customer']);
+initChatWidget();
+bindSocketUpdates();
+loadTicket();
+renderStepper();
+</script>
+</body>
+</html>

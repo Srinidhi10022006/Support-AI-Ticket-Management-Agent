@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard – TicketPilot</title>
+  <meta name="description" content="View and manage your support tickets with AI-powered assistance." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    /* Ticket cards instead of table */
+    .ticket-list { display: flex; flex-direction: column; gap: 10px; }
+    .ticket-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all .18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .ticket-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .ticket-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+      background: var(--border);
+      transition: background .2s;
+    }
+    .ticket-card[data-priority="critical"]::before { background: var(--priority-critical-text); }
+    .ticket-card[data-priority="high"]::before     { background: var(--priority-high-text); }
+    .ticket-card[data-priority="medium"]::before   { background: var(--priority-medium-text); }
+    .ticket-card[data-priority="low"]::before      { background: var(--priority-low-text); }
+
+    .ticket-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+    .ticket-card-actions { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .ticket-card-subject { font-size: .9rem; font-weight: 600; color: var(--text-primary); flex: 1; line-height: 1.4; }
+    .ticket-card-meta { display: flex; align-items: center; justify-content: space-between; font-size: .78rem; color: var(--text-muted); }
+    .ticket-card-id { font-family: monospace; font-size: .75rem; color: var(--text-muted); }
+
+    /* Mini progress */
+    .mini-progress { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+    .mini-progress-bar { flex: 1; height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+    .mini-progress-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .6s ease; }
+    .mini-progress-stages { display: flex; justify-content: space-between; font-size: .65rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ask-fab removed — single floating chat bubble (from interactions.css) is the only AI entry point */
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="user-dashboard.html" class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="my-tickets.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        My Tickets
+        <span class="nav-badge" id="nav-tickets-badge">0</span>
+      </a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Profile
+      </a>
+      <a href="settings.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Settings
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,var(--accent),#0EA5E9);">??</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Loading…</div>
+          <div class="sidebar-user-role">Customer</div>
+        </div>
+      </div>
+      <a href="#" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:7px 10px;border-radius:var(--radius);margin-top:4px;text-decoration:none;transition:var(--transition);" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='none'" onclick="window.logout(); return false;">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M8 5l-5 5 5 5M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sign out
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <!-- Search filters tickets in this page's list -->
+        <div class="search-bar" style="min-width:180px;">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M15 15l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="search" id="ticket-search" placeholder="Search tickets…" oninput="filterTickets()" />
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openAskAI()" title="Ask AI" id="header-ask-ai-btn" style="gap:6px;">
+          <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 11h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Ask AI
+        </button>
+        <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme" onclick="window.toggleDarkMode()">
+          <span class="icon-sun"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span class="icon-moon"><svg viewBox="0 0 20 20" fill="none"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        </button>
+        <div class="avatar avatar-sm" onclick="location.href='profile.html'" style="cursor:pointer;" data-user-initials>??</div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <!-- Welcome -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Welcome back, <span data-user-firstname>there</span></h2>
+          <p>Here’s an overview of your support activity.</p>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:rgba(29,158,117,0.12);color:var(--accent);">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="stat-card-label">Total tickets</div>
+          <div class="stat-card-value" id="stat-total">0</div>
+          <div class="stat-card-sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:var(--status-open-bg);color:var(--status-open-text);">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="stat-card-label">Open</div>
+          <div class="stat-card-value" style="color:var(--status-open-text);" id="stat-open">0</div>
+          <div class="stat-card-sub">Awaiting response</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:var(--status-inprogress-bg);color:var(--status-inprogress-text);">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 4v8l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="stat-card-label">In progress</div>
+          <div class="stat-card-value" style="color:var(--status-inprogress-text);" id="stat-inprogress">0</div>
+          <div class="stat-card-sub">Being worked on</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:var(--status-resolved-bg);color:var(--status-resolved-text);">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="stat-card-label">Resolved</div>
+          <div class="stat-card-value" style="color:var(--status-resolved-text);" id="stat-resolved">0</div>
+          <div class="stat-card-sub">Closed successfully</div>
+        </div>
+      </div>
+
+      <!-- Filter pills -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+        <div class="filter-bar" style="margin:0;">
+          <button class="filter-pill active" id="pill-all"        onclick="setFilter('all')">All</button>
+          <button class="filter-pill"         id="pill-open"       onclick="setFilter('open')">Open</button>
+          <button class="filter-pill"         id="pill-inprogress" onclick="setFilter('inprogress')">In progress</button>
+          <button class="filter-pill"         id="pill-resolved"   onclick="setFilter('resolved')">Resolved</button>
+        </div>
+        <a href="create-ticket.html" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          New ticket
+        </a>
+      </div>
+
+      <!-- Ticket list -->
+      <div id="ticket-list" class="ticket-list"></div>
+
+      <!-- Empty state (hidden by default) -->
+      <div id="empty-state" style="display:none;">
+        <div style="
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          text-align:center;
+          padding:56px 24px;
+          gap:0;
+        ">
+          <div style="
+            width:72px;height:72px;
+            border-radius:50%;
+            background:var(--surface-2);
+            border:1.5px solid var(--border);
+            display:flex;align-items:center;justify-content:center;
+            margin-bottom:20px;
+          ">
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+              <rect x="8" y="10" width="32" height="28" rx="4" stroke="currentColor" stroke-width="2" opacity=".35"/>
+              <path d="M16 20h16M16 28h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+            </svg>
+          </div>
+          <h3 id="empty-heading" style="margin-bottom:8px;font-size:1.05rem;">No tickets yet</h3>
+          <p id="empty-sub" style="color:var(--text-muted);font-size:.875rem;max-width:320px;line-height:1.55;margin-bottom:24px;">You haven’t created any tickets yet. Start a conversation with the AI assistant to get help.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+            <a href="create-ticket.html" class="btn btn-primary">
+              <svg viewBox="0 0 20 20" fill="none" style="width:14px;height:14px;"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              New ticket
+            </a>
+            <button type="button" class="btn btn-ghost" onclick="openChatWidget()">
+              <svg viewBox="0 0 20 20" fill="none" style="width:14px;height:14px;"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" fill="currentColor" fill-opacity=".2" stroke="currentColor" stroke-width="1.5"/></svg>
+              Ask the assistant
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating chat bubble is rendered by interactions.css / app.js initChatWidget() -->
+
+<div id="app-toast-container" class="toast-container"></div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+const currentUser = window.requireAuth(['customer']);
+if (!currentUser) {
+  throw new Error('Unauthorized');
+}
+
+let allTickets = [];
+let activeFilter = 'all';
+let searchQuery = '';
+
+function updateStats(tickets) {
+  document.getElementById('stat-total').textContent = tickets.length;
+  document.getElementById('stat-open').textContent = tickets.filter(ticket => !['resolved', 'closed'].includes(window.normalizeTicketStatus(ticket.status))).length;
+  document.getElementById('stat-inprogress').textContent = tickets.filter(ticket => window.normalizeTicketStatus(ticket.status) === 'inprogress').length;
+  document.getElementById('stat-resolved').textContent = tickets.filter(ticket => ['resolved', 'closed'].includes(window.normalizeTicketStatus(ticket.status))).length;
+  const badge = document.getElementById('nav-tickets-badge');
+  if (badge) badge.textContent = tickets.filter(ticket => !['resolved', 'closed'].includes(window.normalizeTicketStatus(ticket.status))).length;
+}
+
+function renderTickets() {
+  const list = document.getElementById('ticket-list');
+  const empty = document.getElementById('empty-state');
+  const lc = searchQuery.toLowerCase();
+  const tickets = allTickets.filter(ticket => {
+    const meta = window.getTicketStatusMeta(ticket);
+    const matchFilter = activeFilter === 'all' || meta.status === activeFilter;
+    const matchSearch = !lc || (ticket.title || '').toLowerCase().includes(lc) || (ticket.ticketId || '').toLowerCase().includes(lc) || (ticket.category || '').toLowerCase().includes(lc);
+    return matchFilter && matchSearch;
+  });
+
+  if (!tickets.length) {
+    list.innerHTML = '';
+    const heading = document.getElementById('empty-heading');
+    const sub = document.getElementById('empty-sub');
+    if (allTickets.length === 0) {
+      heading.textContent = 'No tickets yet';
+      sub.textContent = 'You haven’t created any tickets yet. Start a conversation with the AI assistant or create a ticket directly.';
+    } else {
+      heading.textContent = 'No matching tickets';
+      sub.textContent = 'Try selecting a different filter above, or clear your search.';
+    }
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.innerHTML = tickets.map(ticket => {
+    const meta = window.getTicketStatusMeta(ticket);
+    const st = meta.status;
+    const stLabel = meta.label;
+    const progress = meta.progress;
+    const isResolved = meta.isResolved;
+    const id = ticket.ticketId || ticket._id;
+    const subject = ticket.title || 'Untitled ticket';
+    const ts = window.relativeTime ? window.relativeTime(ticket.updatedAt || ticket.createdAt) : '';
+    return `
+    <div class="ticket-card" data-priority="${(ticket.priority || 'medium').toLowerCase()}" onclick="location.href='ticket-detail.html?id=${ticket._id}'">
+      <div class="ticket-card-top">
+        <span class="ticket-card-id">${id}</span>
+        <span class="badge badge-category">${ticket.category || 'General'}</span>
+        <span class="badge badge-${st} ${st === 'inprogress' ? 'pulse-badge' : ''}">${stLabel}</span>
+        <div class="ticket-card-actions">
+          ${isResolved
+            ? `<span class="badge" style="background:var(--status-resolved-bg);color:var(--status-resolved-text);border:1px solid var(--status-resolved-border);">✓ Resolved</span>`
+            : `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();markTicketSolved('${ticket._id}', event)">Mark Solved</button>`}
+        </div>
+        <span style="font-size:.72rem;color:var(--text-muted);">${ts}</span>
+      </div>
+      <div class="ticket-card-subject">${subject}</div>
+      <div class="mini-progress" style="margin-top:10px;">
+        <div class="mini-progress-bar"><div class="mini-progress-fill" style="width:${progress}%"></div></div>
+        <span style="font-size:.68rem;color:var(--text-muted);white-space:nowrap;">${progress}%</span>
+      </div>
+      <div class="mini-progress-stages">
+        <span>Open</span><span>Assigned</span><span>In progress</span><span>Resolved</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateStats(tickets);
+}
+
+function setFilter(filter) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-pill').forEach(button => button.classList.remove('active'));
+  const pill = document.getElementById('pill-' + filter);
+  if (pill) pill.classList.add('active');
+  renderTickets();
+}
+
+function filterTickets() {
+  searchQuery = document.getElementById('ticket-search').value;
+  renderTickets();
+}
+
+async function loadTickets() {
+  try {
+    const data = await window.apiRequest('/tickets', 'GET');
+    allTickets = data.tickets || [];
+    renderTickets();
+  } catch (error) {
+    window.showToast?.(error.message || 'Could not load tickets', 'error');
+  }
+}
+
+async function markTicketSolved(id, event) {
+  if (event) event.stopPropagation();
+  try {
+    await window.apiRequest(`/tickets/${id}/customer-resolve`, 'PATCH');
+    await loadTickets();
+    window.showToast?.('🎉 Ticket marked as resolved!', 'success');
+  } catch (error) {
+    window.showToast?.(error.message || 'Could not update ticket', 'error');
+  }
+}
+
+function openChatWidget() {
+  window.openAskAI();
+}
+
+const socket = window.initSocket();
+if (socket) {
+  socket.on('ticket:statusChanged', loadTickets);
+  socket.on('ticket:newReply', loadTickets);
+}
+
+window.addEventListener('focus', loadTickets);
+initChatWidget();
+loadTickets();
+</script>
+</body>
+</html>

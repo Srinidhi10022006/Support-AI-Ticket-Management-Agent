@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Ticket – TicketPilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    body { background: linear-gradient(135deg,#F0F4FF,#F8FAFC 60%,#F0F9FF); min-height: 100vh; }
+    .guest-header { background:#0F172A; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; }
+    .guest-header a { color:rgba(255,255,255,.7); font-size:.85rem; display:flex; align-items:center; gap:6px; }
+    .guest-header a svg { width:14px; height:14px; }
+    .guest-header a:hover { color:#fff; text-decoration:none; }
+
+    .track-main { max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    .track-hero { text-align:center; margin-bottom:32px; }
+    .track-hero h1 { font-size:1.7rem; margin-bottom:8px; }
+    .track-hero p { color:var(--text-secondary); }
+
+    .track-card { background:#fff; border:1px solid var(--border); border-radius:20px; padding:36px; box-shadow:0 8px 32px rgba(0,0,0,.06); margin-bottom:24px; }
+    .track-form { display:flex; flex-direction:column; gap:16px; }
+
+    .ticket-result { display:none; }
+    .ticket-result.show { display:block; }
+
+    .result-header {
+      display:flex; align-items:center; gap:14px;
+      padding:20px;
+      background: linear-gradient(135deg,#EFF6FF,#F5F3FF);
+      border:1px solid #C7D2FE;
+      border-radius: var(--radius-md);
+      margin-bottom:20px;
+    }
+    .result-ticket-id { font-family:monospace; font-size:1.1rem; font-weight:700; color:var(--primary); }
+    .result-title { font-size:1rem; font-weight:600; color:var(--text-primary); }
+    .result-date { font-size:.78rem; color:var(--text-muted); margin-top:2px; }
+
+    .result-section { margin-bottom:20px; }
+    .result-section h4 { font-size:.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:10px; }
+    .result-badges { display:flex; flex-wrap:wrap; gap:8px; }
+    .result-dept { display:flex; align-items:center; gap:8px; font-size:.875rem; color:var(--text-secondary); }
+
+    .resolve-action { background:#F0FDF4; border:1px solid #BBF7D0; border-radius:var(--radius-md); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .resolve-action p { font-size:.875rem; color:#166534; font-weight:500; }
+
+    @media(max-width:500px){ .track-card{padding:24px 16px;} }
+  </style>
+</head>
+<body>
+  <header class="guest-header">
+    <div class="brand">
+      <div class="brand-icon" style="background:transparent;width:34px;height:34px;padding:0;">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="brand-name">TicketPilot</span>
+    </div>
+    <a href="guest-entry.html">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 3l-7 7 7 7M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Create New Ticket
+    </a>
+  </header>
+
+  <main class="track-main">
+    <div class="track-hero">
+      <h1>Track Your Ticket</h1>
+      <p>Enter your Ticket ID and email address to view your ticket status.</p>
+    </div>
+
+    <div class="track-card">
+      <form class="track-form" onsubmit="trackTicket(event)">
+        <div class="form-group">
+          <label for="t-id">Ticket ID</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="t-id" placeholder="TKT-XXXXXX" style="text-transform:uppercase;font-family:monospace;" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="t-email">Email Address</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 6.667L10 11.25l7.5-4.583" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="2.5" y="4.167" width="15" height="11.667" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+            <input type="email" id="t-email" placeholder="your@email.com" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="track-btn">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M15 15l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Check Status
+        </button>
+      </form>
+    </div>
+
+    <!-- Result -->
+    <div class="ticket-result track-card" id="ticket-result">
+      <div class="result-header">
+        <div style="flex:1;">
+          <div class="result-ticket-id" id="res-id">—</div>
+          <div class="result-title" id="res-title">—</div>
+          <div class="result-date" id="res-date">—</div>
+        </div>
+        <span class="badge" id="res-status-badge">—</span>
+      </div>
+
+      <!-- Status Timeline -->
+      <div class="result-section">
+        <h4>Status Progress</h4>
+        <div class="status-timeline" id="res-timeline"></div>
+      </div>
+
+      <!-- AI Tags -->
+      <div class="result-section">
+        <h4>AI Classification</h4>
+        <div class="result-badges">
+          <span class="badge badge-category" id="res-category">—</span>
+          <span class="badge" id="res-priority">—</span>
+          <span class="badge" id="res-sentiment">—</span>
+        </div>
+      </div>
+
+      <!-- Department -->
+      <div class="result-section">
+        <h4>Assigned To</h4>
+        <div class="result-dept">
+          <span style="font-size:1.2rem">🏢</span>
+          <span id="res-dept">—</span>
+        </div>
+      </div>
+
+      <!-- Latest update -->
+      <div class="result-section">
+        <h4>Latest Update</h4>
+        <p id="res-update" style="font-size:.875rem;color:var(--text-secondary);"></p>
+      </div>
+
+      <div class="resolve-action" id="resolve-action" style="display:none;">
+        <p>✅ Has your issue been resolved? Let us know so we can close the ticket.</p>
+        <button class="btn btn-success" onclick="markResolved()">Mark as Resolved</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    const STATUSES = ['open','inprogress','resolved','closed'];
+    const STATUS_LABELS = { open:'Open', inprogress:'In Progress', resolved:'Resolved', closed:'Closed' };
+    const PRIORITIES = ['low','medium','high','critical'];
+    const CATEGORIES = ['Network','Software','Hardware','Account','Payment','HR','General'];
+    const DEPTS = { it:'IT Support', network:'Network Team', hr:'Human Resources', finance:'Finance', general:'General Support' };
+
+    function buildTimeline(currentStatus) {
+      const steps = STATUSES;
+      const currentIdx = steps.indexOf(currentStatus);
+      return steps.map((s, i) => {
+        let cls = '';
+        if (i < currentIdx) cls = 'done';
+        else if (i === currentIdx) cls = 'done current';
+        return `<div class="timeline-step ${cls}">
+          <div class="timeline-dot">${i < currentIdx ? '✓' : (i+1)}</div>
+          <div class="timeline-label">${STATUS_LABELS[s]}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function trackTicket(e) {
+      e.preventDefault();
+      const id = document.getElementById('t-id').value.toUpperCase().trim();
+      const email = document.getElementById('t-email').value.trim();
+
+      const btn = document.getElementById('track-btn');
+      btn.classList.add('btn-loading'); btn.disabled = true;
+
+      setTimeout(() => {
+        btn.classList.remove('btn-loading'); btn.disabled = false;
+
+        // Try localStorage first
+        const saved = localStorage.getItem('guestTicket_' + id);
+        let ticket;
+        if (saved) {
+          ticket = JSON.parse(saved);
+          if (ticket.email.toLowerCase() !== email.toLowerCase()) {
+            showToast('Email does not match this Ticket ID.', 'error'); return;
+          }
+        } else {
+          // Demo fallback
+          ticket = {
+            id, email,
+            title: 'Wi-Fi connectivity issue in Building B',
+            status: 'inprogress',
+            category: 'Network',
+            priority: 'high',
+            sentiment: 'negative',
+            dept: 'network',
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            update: 'A network engineer has been assigned and is investigating the issue in Building B. Expected resolution within 2 hours.'
+          };
+        }
+
+        // Augment with AI fields if missing
+        if (!ticket.category) ticket.category = CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)];
+        if (!ticket.priority) ticket.priority = PRIORITIES[Math.floor(Math.random()*PRIORITIES.length)];
+        if (!ticket.sentiment) ticket.sentiment = 'neutral';
+        if (!ticket.status) ticket.status = 'open';
+        if (!ticket.dept) ticket.dept = 'it';
+        if (!ticket.update) ticket.update = 'Your ticket has been received and is being reviewed by our AI system.';
+
+        displayResult(ticket);
+      }, 1000);
+    }
+
+    function displayResult(ticket) {
+      document.getElementById('res-id').textContent = ticket.id;
+      document.getElementById('res-title').textContent = ticket.title;
+      document.getElementById('res-date').textContent = 'Created: ' + new Date(ticket.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+
+      const statusBadge = document.getElementById('res-status-badge');
+      statusBadge.textContent = STATUS_LABELS[ticket.status] || ticket.status;
+      statusBadge.className = `badge badge-${ticket.status}`;
+
+      document.getElementById('res-timeline').innerHTML = buildTimeline(ticket.status);
+      document.getElementById('res-category').textContent = '🏷 ' + ticket.category;
+
+      const priBadge = document.getElementById('res-priority');
+      priBadge.textContent = ticket.priority.charAt(0).toUpperCase()+ticket.priority.slice(1);
+      priBadge.className = `badge badge-${ticket.priority}`;
+
+      const sentBadge = document.getElementById('res-sentiment');
+      const sentEmoji = {positive:'😊',neutral:'😐',negative:'😟'};
+      sentBadge.textContent = (sentEmoji[ticket.sentiment]||'') + ' ' + ticket.sentiment.charAt(0).toUpperCase()+ticket.sentiment.slice(1);
+      sentBadge.className = `badge badge-sentiment-${ticket.sentiment}`;
+
+      document.getElementById('res-dept').textContent = DEPTS[ticket.dept] || ticket.dept || 'IT Support';
+      document.getElementById('res-update').textContent = ticket.update;
+
+      if (ticket.status === 'inprogress' || ticket.status === 'open') {
+        document.getElementById('resolve-action').style.display = 'flex';
+      }
+
+      document.getElementById('ticket-result').classList.add('show');
+      document.getElementById('ticket-result').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function markResolved() {
+      showToast('✅ Thank you! Your ticket has been marked as resolved.', 'success');
+      document.getElementById('resolve-action').style.display = 'none';
+      const badge = document.getElementById('res-status-badge');
+      badge.textContent = 'Resolved'; badge.className = 'badge badge-resolved';
+    }
+
+    function showToast(msg, type='info') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`; t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(()=>t.remove(), 3500);
+    }
+  </script>
+</body>
+</html>

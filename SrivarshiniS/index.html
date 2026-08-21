@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TicketPilot – AI-Powered Support Ticket Management</title>
+  <meta name="description" content="TicketPilot: Automatically classify, prioritize, and route support tickets. Get instant AI-suggested solutions and real-time tracking." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    .land-nav {
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 40px;height:68px;
+      background:rgba(13,17,23,0.92);backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+    }
+    .land-brand { display:flex;align-items:center;gap:9px;text-decoration:none; }
+    .land-brand-icon { width:34px;height:34px;display:flex;align-items:center;justify-content:center; }
+    .land-brand-name { font-size:1.05rem;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em; }
+    .land-nav-links { display:flex;align-items:center;gap:4px; }
+    .land-nav-link { padding:7px 14px;border-radius:var(--radius);font-size:.875rem;font-weight:500;color:var(--text-secondary);transition:var(--transition); }
+    .land-nav-link:hover { color:var(--text-primary);background:var(--surface-hover); }
+    .land-nav-actions { display:flex;align-items:center;gap:8px; }
+
+    .hero { padding:110px 40px 80px;text-align:center;position:relative;overflow:hidden; }
+    .hero::before { content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(29,158,117,.15) 0%,transparent 60%);pointer-events:none; }
+    .hero-eyebrow { font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:14px; }
+    .hero-title { font-size:clamp(2.4rem,5vw,4rem);font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-bottom:18px;max-width:800px;margin-left:auto;margin-right:auto;color:var(--text-primary); }
+    .hero-title span { background:linear-gradient(135deg,#1D9E75,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+    .hero-sub { font-size:1.1rem;color:var(--text-secondary);max-width:580px;margin:0 auto 48px;line-height:1.7; }
+    .hero-stats { display:flex;gap:48px;justify-content:center;flex-wrap:wrap; }
+    .hero-stat { text-align:center; }
+    .hero-stat-label { font-size:.78rem;color:var(--text-secondary);margin-top:6px;font-weight:500; }
+
+    .lsection { padding:80px 40px;max-width:1100px;margin:0 auto;opacity:0;transform:translateY(18px);transition:opacity 0.5s ease, transform 0.5s ease; }
+    .lsection.reveal-visible { opacity:1;transform:translateY(0); }
+    .section-label { font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:8px;text-align:center; }
+    .section-title { font-size:clamp(1.6rem,3vw,2.3rem);font-weight:800;letter-spacing:-.02em;text-align:center;margin-bottom:10px;color:var(--text-primary); }
+    .section-sub { font-size:1rem;color:var(--text-secondary);text-align:center;max-width:540px;margin:0 auto 48px;line-height:1.7; }
+
+    .how-steps { display:grid;grid-template-columns:repeat(3,1fr);gap:20px; }
+    .how-step { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px 22px;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease, box-shadow 0.25s ease; }
+    .how-step:hover { border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(29,158,117,0.15); }
+    .how-num { width:38px;height:38px;border-radius:50%;background:var(--accent-light);border:1.5px solid var(--accent);color:var(--accent);font-size:.875rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:14px; }
+    .how-title { font-size:.98rem;font-weight:700;color:var(--text-primary); }
+
+    .features-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:18px; }
+    .feat-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px 20px;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease, box-shadow 0.25s ease; }
+    .feat-card:hover { border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(29,158,117,0.15); }
+    .feat-icon { width:42px;height:42px;border-radius:var(--radius);background:var(--accent-light);border:1px solid var(--accent-glow);display:flex;align-items:center;justify-content:center;margin-bottom:14px; }
+    .feat-icon svg { width:20px;height:20px;color:var(--accent); }
+    .feat-title { font-size:.95rem;font-weight:700;color:var(--text-primary); }
+
+    .persona-cards { display:grid;grid-template-columns:repeat(3,1fr);gap:18px; }
+    .persona-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px 22px;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease, box-shadow 0.25s ease; }
+    .persona-card:hover { border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(29,158,117,0.15); }
+    .persona-role { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px; }
+    .persona-title { font-size:1.02rem;font-weight:700;color:var(--text-primary); }
+
+    .cta-section { padding:60px 40px;text-align:center;background:radial-gradient(ellipse 60% 50% at 50% 100%,rgba(29,158,117,.12) 0%,transparent 70%);border-top:1px solid var(--border);opacity:0;transform:translateY(18px);transition:opacity 0.5s ease, transform 0.5s ease; }
+    .cta-section.reveal-visible { opacity:1;transform:translateY(0); }
+
+    /* Auth slide panel */
+    .auth-overlay { position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:800;opacity:0;pointer-events:none;transition:opacity .22s; }
+    .auth-overlay.open { opacity:1;pointer-events:all; }
+    .auth-panel { position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;background:var(--bg);border-left:1px solid var(--border);box-shadow:-20px 0 60px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:810;display:flex;flex-direction:column;overflow-y:auto; }
+    .auth-panel.open { transform:translateX(0); }
+    .auth-panel-head { padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+    .auth-panel-body { padding:28px 28px 32px;flex:1; }
+    .auth-close { width:30px;height:30px;background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm); }
+    .auth-close:hover { background:var(--surface-2);color:var(--text-primary); }
+    .role-selector { margin:6px 0 20px; }
+    .role-label { font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:10px; }
+    .role-options { display:grid;grid-template-columns:repeat(3,1fr);gap:8px; }
+    .role-option { border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all .18s;position:relative; }
+    .role-option input { position:absolute;opacity:0;width:0;height:0; }
+    .role-option:hover { border-color:var(--border-strong);background:var(--surface-hover); }
+    .role-option.selected { border-color:var(--accent);background:var(--accent-light); }
+    .role-opt-icon { font-size:1.2rem;display:flex;align-items:center;justify-content:center;width:26px;height:26px; }
+    .role-opt-label { font-size:.75rem;font-weight:600;color:var(--text-secondary); }
+    .role-option.selected .role-opt-label { color:var(--accent); }
+    .auth-form { display:flex;flex-direction:column;gap:14px; }
+    .auth-footer-note { text-align:center;font-size:.84rem;color:var(--text-secondary);margin-top:20px; }
+    .auth-footer-note a { color:var(--accent);font-weight:600; }
+    .auth-error { display:none;background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius);padding:10px 14px;font-size:.82rem;color:#F87171;align-items:center;gap:8px;margin-bottom:4px; }
+    .auth-error.show { display:flex; }
+
+    @media (max-width:860px) {
+      .land-nav { padding:0 16px; }
+      .land-nav-links { display:none; }
+      .hero { padding:70px 20px 50px; }
+      .how-steps,.features-grid,.persona-cards { grid-template-columns:1fr; }
+      .lsection { padding:52px 20px; }
+      .auth-panel { width:100vw; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="land-nav">
+  <a href="index.html" class="land-brand">
+    <div class="land-brand-icon">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span class="land-brand-name">TicketPilot</span>
+  </a>
+  <div class="land-nav-links">
+    <a href="#how-it-works" class="land-nav-link">How it works</a>
+    <a href="#features" class="land-nav-link">Features</a>
+    <a href="about.html" class="land-nav-link">About</a>
+    <a href="demo.html" class="land-nav-link">Demo</a>
+  </div>
+  <div class="land-nav-actions">
+    <button class="btn btn-ghost btn-sm" onclick="openAuth('login')" id="nav-login-btn">Log in</button>
+    <button class="btn btn-primary btn-sm" onclick="openAuth('signup')" id="nav-signup-btn">Sign up free</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">AI-Powered Support Platform</div>
+  <h1 class="hero-title">Intelligent support,<br/><span>powered by AI.</span></h1>
+  <p class="hero-sub">Automatically classify, prioritize, and route support tickets. Get instant AI-suggested solutions and real-time tracking. The system learns and improves with every resolution.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num" data-count="78" data-suffix="%">78%</div>
+      <div class="hero-stat-label">Tickets auto-resolved by AI</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">2.3<span style="font-size:1.2rem;font-weight:600;">s</span></div>
+      <div class="hero-stat-label">Average first response time</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">4.6<span style="font-size:1.2rem;font-weight:600;">/5</span></div>
+      <div class="hero-stat-label">Average CSAT score</div>
+    </div>
+  </div>
+</section>
+
+<div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="lsection" id="how-it-works">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three steps from question to resolution.</h2>
+  <p class="section-sub">Describe your issue — the AI handles everything else.</p>
+  <div class="how-steps">
+    <div class="how-step">
+      <div class="how-num">1</div>
+      <div class="how-title">Ask anything</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num">2</div>
+      <div class="how-title">AI resolves or routes</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num">3</div>
+      <div class="how-title">System keeps learning</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="lsection" id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Everything support needs, powered by AI.</h2>
+  <p class="section-sub">Every step of support, powered by AI.</p>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+      <div class="feat-title">Smart chatbot</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M10 3L17.5 17H2.5L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+      <div class="feat-title">Dynamic priority routing</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="feat-title">Confidence-based escalation</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+      <div class="feat-title">Agent AI copilot</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M4 5a2 2 0 012-2h8a2 2 0 012 2v12l-6-3-6 3V5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+      <div class="feat-title">Self-improving knowledge base</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="2" y="12" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="8" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="4" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.5"/></svg></div>
+      <div class="feat-title">Real-time analytics</div>
+    </div>
+  </div>
+</div>
+
+<div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="lsection">
+  <div class="section-label">Who it's for</div>
+  <h2 class="section-title">Built for every role.</h2>
+  <p class="section-sub">One platform, built for every role.</p>
+  <div class="persona-cards">
+    <div class="persona-card">
+      <div class="persona-role" style="color:#60A5FA;">For Customers</div>
+      <div class="persona-title">Fast answers, no waiting</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-role" style="color:var(--accent);">For Support Agents</div>
+      <div class="persona-title">AI-assisted, always in control</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-role" style="color:#F87171;">For Admins</div>
+      <div class="persona-title">Full visibility and control</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="cta-section" style="padding:50px 40px;">
+  <h2 style="font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:8px;color:var(--text-primary);">Start resolving tickets smarter.</h2>
+  <p style="color:var(--text-secondary);margin:0;font-size:1rem;">No credit card required. Full access in under a minute.</p>
+</div>
+
+<footer style="border-top:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:var(--text-muted);flex-wrap:wrap;gap:10px;">
+  <span>© 2026 TicketPilot</span>
+  <div style="display:flex;gap:16px;">
+    <a href="about.html" style="color:var(--text-muted);">About</a>
+    <a href="demo.html"  style="color:var(--text-muted);">Demo</a>
+    <button onclick="openAuth('login')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.78rem;font-family:inherit;">Log in</button>
+    <button onclick="openAuth('signup')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.78rem;font-family:inherit;">Sign up</button>
+  </div>
+</footer>
+
+<!-- Auth slide panel -->
+<div class="auth-overlay" id="auth-overlay" onclick="closeAuth()"></div>
+<div class="auth-panel" id="auth-panel" role="dialog" aria-label="Sign in" aria-modal="true">
+  <div class="auth-panel-head">
+    <div>
+      <div style="font-size:1rem;font-weight:700;" id="panel-heading">Welcome back</div>
+      <div style="font-size:.8rem;color:var(--text-muted);" id="panel-sub">Sign in to your account</div>
+    </div>
+    <button class="auth-close" onclick="closeAuth()" aria-label="Close">
+      <svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="auth-panel-body">
+    <div class="auth-error" id="auth-error">
+      <svg viewBox="0 0 20 20" fill="none" style="width:14px;height:14px;flex-shrink:0;"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v4M10 13v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span id="auth-error-msg">Invalid credentials</span>
+    </div>
+    <form class="auth-form" onsubmit="handleLogin(event)">
+      <div class="role-selector">
+        <div class="role-label">Sign in as</div>
+        <div class="role-options">
+          <label class="role-option selected" id="role-opt-customer">
+            <input type="radio" name="role" value="customer" checked onchange="selectRole(this)" />
+            <div class="role-opt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="role-opt-label">Customer</div>
+          </label>
+          <label class="role-option" id="role-opt-agent">
+            <input type="radio" name="role" value="agent" onchange="selectRole(this)" />
+            <div class="role-opt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v9a1 1 0 01-1 1H6l-4 3V4z" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="role-opt-label">Agent</div>
+          </label>
+          <label class="role-option" id="role-opt-admin">
+            <input type="radio" name="role" value="admin" onchange="selectRole(this)" />
+            <div class="role-opt-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L2 6v4c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V6l-8-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+            <div class="role-opt-label">Admin</div>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 6.667L10 11.25l7.5-4.583" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="2.5" y="4.167" width="15" height="11.667" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          <input type="email" id="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="password">
+          Password
+          <a href="#" class="text-accent" style="font-size:.78rem;font-weight:600;">Forgot password?</a>
+        </label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
+          <button type="button" onclick="togglePass()" style="position:absolute;right:10px;background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;padding:4px;" aria-label="Show password">
+            <svg viewBox="0 0 20 20" fill="none" style="width:15px;height:15px;"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+        <span id="login-btn-text">Sign in</span>
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+    <p class="auth-footer-note">No account? <a href="signup.html">Create one free</a> · <a href="demo.html">Try the demo</a></p>
+  </div>
+</div>
+
+<div id="app-toast-container" class="toast-container"></div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+let selectedRole = 'customer';
+
+function openAuth(mode) {
+  const overlay = document.getElementById('auth-overlay');
+  const panel   = document.getElementById('auth-panel');
+  overlay.classList.add('open');
+  panel.classList.add('open');
+  document.getElementById('panel-heading').textContent = mode === 'signup' ? 'Create your account' : 'Welcome back';
+  document.getElementById('panel-sub').textContent = mode === 'signup' ? "It's free — no credit card needed" : 'Sign in to your account';
+  document.body.style.overflow = 'hidden';
+  if (mode === 'signup') { closeAuth(); setTimeout(() => window.location.href = 'signup.html', 120); }
+}
+function closeAuth() {
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.getElementById('auth-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAuth(); });
+
+function selectRole(input) {
+  selectedRole = input.value;
+  document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
+  input.closest('.role-option').classList.add('selected');
+}
+function togglePass() {
+  const pw = document.getElementById('password');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  document.getElementById('auth-error-msg').textContent = msg;
+  el.classList.add('show');
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn     = document.getElementById('login-btn');
+  const btnText = document.getElementById('login-btn-text');
+  const email   = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  btn.classList.add('btn-loading');
+  btnText.textContent = 'Signing in…';
+  btn.disabled = true;
+  document.getElementById('auth-error').classList.remove('show');
+
+  try {
+    const data = await window.apiRequest('/auth/login', 'POST', { email, password });
+    window.setCurrentUser(data.user, data.token);
+    window.initSocket();
+    if (window.showToast) showToast('Welcome back, ' + data.user.name.split(' ')[0] + '!', 'success');
+    setTimeout(() => {
+      window.location.href = window.getDashboardUrl(data.user.role);
+    }, 500);
+  } catch (err) {
+    showAuthError(err.message || 'Invalid credentials. Please try again.');
+    btn.classList.remove('btn-loading');
+    btnText.textContent = 'Sign in';
+    btn.disabled = false;
+  }
+}
+
+// If already logged in, update nav buttons
+(function() {
+  const user = window.getCurrentUser ? window.getCurrentUser() : null;
+  if (user && user.role) {
+    const dest = window.getDashboardUrl ? window.getDashboardUrl(user.role) : 'user-dashboard.html';
+    const loginBtn  = document.getElementById('nav-login-btn');
+    const signupBtn = document.getElementById('nav-signup-btn');
+    if (loginBtn)  { loginBtn.textContent = 'Dashboard'; loginBtn.onclick = () => window.location.href = dest; loginBtn.className = 'btn btn-ghost btn-sm'; }
+    if (signupBtn) { signupBtn.textContent = 'Sign out'; signupBtn.onclick = () => window.logout(); signupBtn.className = 'btn btn-danger btn-sm'; }
+  }
+})();
+
+// Scroll reveal animation for homepage sections
+document.addEventListener('DOMContentLoaded', () => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal-visible');
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.lsection, .cta-section').forEach(el => observer.observe(el));
+});
+</script>
+</body>
+</html>

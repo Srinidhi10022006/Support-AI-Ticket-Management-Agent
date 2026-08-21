@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Ticket Entry – TicketPilot</title>
+  <meta name="description" content="Create a support ticket without an account. No registration required." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/interactions.css" />
+  <style>
+    .guest-root {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #F0F4FF 0%, #F8FAFC 60%, #F0F9FF 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    .guest-header {
+      background: #0F172A;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .guest-header .brand { margin-bottom: 0; }
+    .guest-header a { color: rgba(255,255,255,.7); font-size: .85rem; display: flex; align-items: center; gap: 6px; }
+    .guest-header a:hover { color: #fff; text-decoration: none; }
+    .guest-header a svg { width: 14px; height: 14px; }
+
+    .guest-main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .guest-content { width: 100%; max-width: 680px; }
+
+    .guest-hero {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .guest-hero h1 { font-size: 1.8rem; margin-bottom: 10px; color: #0F172A; }
+    .guest-hero p { color: #64748B; font-size: .95rem; }
+    .guest-hero .info-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      color: #1D4ED8;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: .8rem;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .guest-card {
+      background: #fff;
+      border: 1px solid #E2E8F0;
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.06);
+    }
+    .guest-form { display: flex; flex-direction: column; gap: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .char-counter { font-size: .75rem; color: var(--text-muted); text-align: right; margin-top: 4px; }
+
+    .submit-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-top: 8px;
+    }
+    .submit-row .btn { min-width: 160px; }
+
+    .track-link-row {
+      text-align: center;
+      margin-top: 20px;
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+    .track-link-row a { font-weight: 600; }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .guest-card { padding: 24px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="guest-root">
+    <header class="guest-header">
+      <div class="brand">
+        <div class="brand-icon" style="background:transparent;width:34px;height:34px;padding:0;">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <span class="brand-name">TicketPilot</span>
+      </div>
+      <a href="index.html">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 3l-7 7 7 7M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to Login
+      </a>
+    </header>
+
+    <main class="guest-main">
+      <div class="guest-content">
+        <div class="guest-hero">
+          <h1>Create a Support Ticket</h1>
+          <p>No account required. Describe your issue and get AI-powered help instantly.</p>
+          <div class="info-note">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5M10 7v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            You'll receive a Ticket ID to track your request
+          </div>
+        </div>
+
+        <div class="guest-card">
+          <form class="guest-form" id="guest-form" onsubmit="submitGuestTicket(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="g-name">Full Name <span style="color:#EF4444">*</span></label>
+                <div class="input-wrapper">
+                  <svg class="input-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  <input type="text" id="g-name" placeholder="John Smith" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="g-email">Email Address <span style="color:#EF4444">*</span></label>
+                <div class="input-wrapper">
+                  <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M2.5 6.667L10 11.25l7.5-4.583" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="2.5" y="4.167" width="15" height="11.667" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+                  <input type="email" id="g-email" placeholder="john@company.com" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="g-dept">Department <span style="color:#94A3B8;font-weight:400">(optional)</span></label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 6V5a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <select id="g-dept">
+                  <option value="">Select department (optional)</option>
+                  <option value="it">IT Support</option>
+                  <option value="network">Network Team</option>
+                  <option value="hr">Human Resources</option>
+                  <option value="finance">Finance</option>
+                  <option value="general">General Support</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="g-title">Ticket Title <span style="color:#EF4444">*</span></label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M4 10h8M4 14h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input type="text" id="g-title" placeholder="Brief summary of your issue…" required maxlength="120" oninput="updateCharCount(this,'title-count',120)" />
+              </div>
+              <div class="char-counter"><span id="title-count">0</span>/120</div>
+            </div>
+
+            <div class="form-group">
+              <label for="g-desc">Description <span style="color:#EF4444">*</span></label>
+              <textarea id="g-desc" rows="5" placeholder="Describe your issue in detail. What happened? When did it start? What have you already tried?" required maxlength="2000" oninput="updateCharCount(this,'desc-count',2000)"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                <span class="form-hint">More detail helps the AI suggest a better solution.</span>
+                <span class="char-counter"><span id="desc-count">0</span>/2000</span>
+              </div>
+            </div>
+
+            <div class="submit-row">
+              <button type="submit" class="btn btn-primary btn-lg" id="guest-submit-btn">
+                <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Submit Ticket
+              </button>
+              <span style="color:var(--text-muted);font-size:.8rem">AI will analyze your ticket instantly</span>
+            </div>
+          </form>
+        </div>
+
+        <div class="track-link-row">
+          Already have a ticket?
+          <a href="guest-track.html">Track ticket status →</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    function updateCharCount(el, countId, max) {
+      document.getElementById(countId).textContent = el.value.length;
+    }
+
+    function submitGuestTicket(e) {
+      e.preventDefault();
+      const btn = document.getElementById('guest-submit-btn');
+      btn.classList.add('btn-loading');
+      btn.disabled = true;
+
+      // Simulate AI analysis
+      setTimeout(() => {
+        // Store guest ticket data
+        const ticketId = 'TKT-' + Math.random().toString(36).substr(2,6).toUpperCase();
+        const ticket = {
+          id: ticketId,
+          name: document.getElementById('g-name').value,
+          email: document.getElementById('g-email').value,
+          dept: document.getElementById('g-dept').value,
+          title: document.getElementById('g-title').value,
+          desc: document.getElementById('g-desc').value,
+          status: 'open',
+          createdAt: new Date().toISOString(),
+          isGuest: true
+        };
+        localStorage.setItem('guestTicket_' + ticketId, JSON.stringify(ticket));
+        localStorage.setItem('lastGuestTicket', ticketId);
+        window.location.href = 'ticket-confirmation.html?id=' + ticketId + '&guest=true';
+      }, 1800);
+    }
+  </script>
+  <script src="js/interactions.js"></script>
+</body>
+</html>

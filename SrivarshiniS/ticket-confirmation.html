@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket Submitted – TicketPilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <style>
+    /*
+     * ticket-confirmation.html is a standalone light-background page.
+     * Force light-theme token values here so text is readable regardless
+     * of what the user's persisted dark/light preference is in global.css.
+     */
+    :root {
+      --text-primary:    #0F172A;
+      --text-secondary:  #334155;
+      --text-muted:      #64748B;
+      --border:          #E2E8F0;
+      --surface-2:       #F8FAFC;
+      --surface-3:       #F1F5F9;
+      --primary:         #1D9E75;
+      --primary-light:   rgba(29,158,117,.10);
+      --radius:          8px;
+      --radius-md:       12px;
+      --radius-full:     999px;
+      --accent:          #1D9E75;
+      --transition:      all .18s ease;
+    }
+
+    body { background: linear-gradient(135deg,#F0F4FF,#F8FAFC 50%,#F0F9FF); min-height:100vh; }
+    .conf-header { background:#0F172A; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; }
+    .conf-main { max-width:680px; margin:60px auto; padding:0 20px; }
+
+    /* Back breadcrumb in header */
+    .back-header-link {
+      display:inline-flex; align-items:center; gap:6px;
+      color:rgba(255,255,255,.75); font-size:.82rem; font-weight:500;
+      text-decoration:none; transition:color .15s;
+    }
+    .back-header-link:hover { color:#fff; }
+    .back-header-link svg { width:14px; height:14px; }
+
+    .conf-success {
+      text-align:center;
+      margin-bottom:32px;
+      animation: fadeInUp .5s ease;
+    }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    .success-icon {
+      width:72px; height:72px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#22C55E,#16A34A);
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 20px;
+      box-shadow:0 8px 24px rgba(34,197,94,.3);
+    }
+    .success-icon svg { width:36px; height:36px; color:#fff; }
+    .conf-success h1 { font-size:1.8rem; margin-bottom:8px; color:#0F172A; }
+    .conf-success p  { color:#475569; }
+
+    .ticket-id-box {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      background:#fff;
+      border:2px solid var(--primary);
+      border-radius:12px;
+      padding:12px 20px;
+      margin:16px auto;
+      font-family:monospace;
+      font-size:1.3rem;
+      font-weight:700;
+      color:var(--primary);
+      cursor:pointer;
+      transition:var(--transition);
+    }
+    .ticket-id-box:hover { background:#F0FDF4; }
+    .ticket-id-box .copy-hint { font-family:'Inter',sans-serif; font-size:.7rem; color:#64748B; font-weight:500; }
+
+    .conf-card { background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:32px; box-shadow:0 8px 32px rgba(0,0,0,.06); margin-bottom:20px; }
+
+    .conf-section { margin-bottom:24px; }
+    .conf-section:last-child { margin-bottom:0; }
+    /* Fixed: section labels use dark text, not muted-gray-on-white */
+    .conf-section h3 {
+      font-size:.8rem; font-weight:700; color:#475569;
+      text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px;
+    }
+
+    /* AI pulse label */
+    .ai-pulse {
+      display:flex; align-items:center; gap:8px;
+      font-size:.82rem; color:#0F7553; font-weight:700;
+      margin-bottom:10px;
+    }
+    .ai-pulse-dot {
+      width:8px; height:8px;
+      border-radius:50%; background:#1D9E75;
+      animation:pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+    .badge-row { display:flex; flex-wrap:wrap; gap:8px; }
+
+    /* Solution card — green tinted, needs dark text */
+    .solution-card {
+      background:linear-gradient(135deg,#F0FDF4,#ECFDF5);
+      border:1px solid #86EFAC;
+      border-radius:var(--radius-md);
+      padding:20px;
+    }
+    .solution-card h4 {
+      font-size:.95rem; font-weight:700; color:#14532D;
+      margin-bottom:14px; display:flex; align-items:center; gap:6px;
+    }
+    /* Override global step-text: ensure dark text on light green card */
+    .solution-card .step-text { color:#1E293B !important; font-size:.875rem; line-height:1.55; }
+    .solution-card .step-num  { background:#1D9E75; color:#fff; }
+
+    /* Department section */
+    .dept-row { display:flex;align-items:center;gap:12px;padding:14px;background:#F8FAFC;border-radius:var(--radius);border:1px solid #E2E8F0; }
+    .dept-name  { font-weight:600;font-size:.9rem;color:#0F172A; }
+    .dept-meta  { font-size:.78rem;color:#475569; }
+    .dept-meta strong { color:#0F172A; }
+
+    /* requestHuman banner — dark text on light blue so it always reads well */
+    .human-banner {
+      background:#EFF6FF;
+      border:1px solid #93C5FD;
+      border-radius:var(--radius);
+      padding:14px 16px;
+      margin-top:12px;
+      font-size:.875rem;
+      color:#1E40AF;   /* navy — 6.7:1 on #EFF6FF */
+      font-weight:500;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .human-banner svg { width:16px;height:16px;flex-shrink:0;color:#1D4ED8; }
+
+    .action-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .action-row .btn { flex:1; min-width:150px; justify-content:center; }
+
+    @media(max-width:500px){ .conf-card{padding:20px 16px;} }
+  </style>
+</head>
+<body>
+  <header class="conf-header">
+    <div class="brand">
+      <div class="brand-icon" style="background:transparent;width:34px;height:34px;padding:0;">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="brand-name">TicketPilot</span>
+    </div>
+    <a href="user-dashboard.html" class="back-header-link">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to Dashboard
+    </a>
+  </header>
+
+  <main class="conf-main">
+    <div class="conf-success">
+      <div class="success-icon">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h1>Ticket Submitted!</h1>
+      <p>Your ticket has been created and AI analysis is complete.</p>
+
+      <div class="ticket-id-box" onclick="copyTicketId()" title="Click to copy">
+        <span id="display-ticket-id">TKT-XXXXXX</span>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="6" y="6" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4 14H3a1 1 0 01-1-1V3a1 1 0 011-1h10a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="copy-hint">click to copy</span>
+      </div>
+    </div>
+
+    <div class="conf-card">
+      <!-- AI Analysis -->
+      <div class="conf-section">
+        <div class="ai-pulse">
+          <div class="ai-pulse-dot"></div>
+          AI Analysis Complete
+        </div>
+        <h3>AI Classification</h3>
+        <div class="badge-row" id="ai-badges"></div>
+      </div>
+
+      <!-- Suggested Solution -->
+      <div class="conf-section" id="solution-section">
+        <h3>💡 AI Suggested Solution</h3>
+        <div class="solution-card">
+          <h4>🔧 Troubleshooting Steps</h4>
+          <div class="solution-steps" id="solution-steps"></div>
+          <div class="action-row" style="margin-top:16px;">
+            <button class="btn btn-success" onclick="markSolved()">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              That Solved My Issue
+            </button>
+            <button class="btn btn-secondary" onclick="requestHuman()">
+              <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Request Human Help
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Assignment -->
+      <div class="conf-section" id="dept-section">
+        <h3>Department Assignment</h3>
+        <div class="dept-row">
+          <div style="width:40px;height:40px;background:rgba(29,158,117,.12);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:1.3rem;" id="dept-icon">🖥</div>
+          <div>
+            <div class="dept-name" id="dept-name">IT Support</div>
+            <div class="dept-meta">Expected response: <strong>2-4 hours</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <a href="user-dashboard.html" class="btn btn-primary" style="flex:1;justify-content:center;">
+        <svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Back to Dashboard
+      </a>
+      <a href="my-tickets.html" class="btn btn-ghost" style="flex:1;justify-content:center;">
+        <svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        View My Tickets
+      </a>
+      <a href="create-ticket.html" class="btn btn-ghost" style="flex:1;min-width:130px;justify-content:center;">
+        <svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        New Ticket
+      </a>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    const AI_SOLUTIONS = {
+      network: {
+        category:'Network', dept:'Network Team', deptIcon:'📡', sla:'1-2 hours',
+        steps:['Check if other devices can connect to the network.','Restart your router/switch by unplugging for 30 seconds.','Ensure your network cable is securely connected or try a different cable.','Run Windows Network Diagnostics: Right-click network icon → Troubleshoot.','Contact the Network Team if the issue persists after these steps.']
+      },
+      software: {
+        category:'Software', dept:'IT Support', deptIcon:'💻', sla:'2-4 hours',
+        steps:['Restart the application and your computer.','Check for pending software updates.','Clear the application cache or reinstall if needed.','Run as Administrator if permission issues occur.','Document the exact error message and share with IT Support.']
+      },
+      account: {
+        category:'Account', dept:'IT Support', deptIcon:'🔑', sla:'30-60 min',
+        steps:['Use the "Forgot Password" link on the login page.','Check your spam folder for the reset email.','Ensure you\'re using the correct email address.','Clear browser cookies and cache, then try again.','Contact IT Support if you still cannot access your account.']
+      },
+      hr: {
+        category:'HR', dept:'Human Resources', deptIcon:'👥', sla:'1 business day',
+        steps:['Check the HR portal for self-service options.','Review your employee handbook for relevant policies.','Submit your query through the HR helpdesk portal if available.','Contact your HR Business Partner directly for urgent matters.']
+      },
+      finance: {
+        category:'Finance', dept:'Finance Team', deptIcon:'💰', sla:'4-8 hours',
+        steps:['Review your payment confirmation email for reference number.','Check your bank statement for transaction details.','Log into the payment portal to verify transaction status.','Contact Finance with your reference number for investigation.']
+      },
+      default: {
+        category:'General', dept:'IT Support', deptIcon:'🎧', sla:'2-4 hours',
+        steps:['Restart your device and try again.','Ensure all recent updates are installed.','Check if others in your team are experiencing the same issue.','Document the steps to reproduce the problem.','Contact IT Support with detailed information.']
+      }
+    };
+
+    function detectCategory(title, desc) {
+      const text = (title + ' ' + desc).toLowerCase();
+      if (/wifi|wi-fi|network|internet|connectivity|connection/.test(text)) return 'network';
+      if (/software|app|crash|error|install|update/.test(text)) return 'software';
+      if (/password|login|account|access|locked/.test(text)) return 'account';
+      if (/salary|leave|payroll|hr|holiday/.test(text)) return 'hr';
+      if (/payment|invoice|billing|finance/.test(text)) return 'finance';
+      return 'default';
+    }
+
+    function detectPriority(title, desc) {
+      const text = (title + ' ' + desc).toLowerCase();
+      if (/critical|urgent|down|outage|cannot work|blocked/.test(text)) return 'critical';
+      if (/high|important|severe|major/.test(text)) return 'high';
+      if (/medium|moderate/.test(text)) return 'medium';
+      return 'low';
+    }
+
+    function detectSentiment(desc) {
+      const text = desc.toLowerCase();
+      if (/frustrated|angry|terrible|worst|unacceptable|urgent/.test(text)) return 'negative';
+      if (/thanks|great|good|appreciate|helpful/.test(text)) return 'positive';
+      return 'neutral';
+    }
+
+    function init() {
+      const params = new URLSearchParams(window.location.search);
+      const ticketId = params.get('id') || 'TKT-DEMO01';
+
+      document.getElementById('display-ticket-id').textContent = ticketId;
+
+      // ── Load ticket data from shared store ───────────────────────────
+      let title = '', desc = '', deptKey = 'default';
+      let found = null;
+      try {
+        // First: look in shared tickets array
+        const allTickets = JSON.parse(localStorage.getItem('ticketai_tickets') || '[]');
+        found = allTickets.find(t => t.id === ticketId);
+        if (found) {
+          title   = found.title || found.subject || '';
+          desc    = found.description || '';
+          deptKey = found.department || 'default';
+        } else {
+          // Fallback: ticketai_pending (set by create-ticket.html)
+          const pending = JSON.parse(localStorage.getItem('ticketai_pending') || 'null');
+          if (pending && pending.id === ticketId) {
+            title   = pending.title || '';
+            desc    = pending.desc  || '';
+            deptKey = pending.dept  || 'default';
+          } else {
+            // Legacy fallback
+            const saved = localStorage.getItem('guestTicket_' + ticketId);
+            if (saved) { const t = JSON.parse(saved); title = t.title; desc = t.desc; }
+          }
+        }
+      } catch(e) {}
+
+      const catKey   = detectCategory(title, desc);
+      const priority = detectPriority(title, desc);
+      const sentiment = detectSentiment(desc);
+      const sol = (found && found.aiSolution) || AI_SOLUTIONS[catKey] || AI_SOLUTIONS.default;
+
+      // Badges
+      const sentEmoji = {positive:'😊 Positive', neutral:'😐 Neutral', negative:'😟 Negative'};
+      document.getElementById('ai-badges').innerHTML = `
+        <span class="badge badge-category">🏷 ${sol.category}</span>
+        <span class="badge badge-${priority}">${priority.charAt(0).toUpperCase()+priority.slice(1)}</span>
+        <span class="badge badge-sentiment-${sentiment}">${sentEmoji[sentiment]}</span>
+      `;
+
+      // Solution steps
+      document.getElementById('solution-steps').innerHTML = sol.steps.map((s,i) => `
+        <div class="solution-step">
+          <div class="step-num">${i+1}</div>
+          <div class="step-text">${s}</div>
+        </div>
+      `).join('');
+
+      // Department
+      document.getElementById('dept-icon').textContent = sol.deptIcon;
+      document.getElementById('dept-name').textContent = sol.dept + ' — Expected: ' + sol.sla;
+
+      // Store ticketId for markSolved
+      window._currentTicketId = ticketId;
+    }
+
+    function copyTicketId() {
+      const id = document.getElementById('display-ticket-id').textContent;
+      navigator.clipboard.writeText(id).then(() => showToast('Ticket ID copied to clipboard!', 'success'));
+    }
+
+    function markSolved() {
+      // Update ticket status to 'resolved' in shared store
+      try {
+        const id = window._currentTicketId;
+        if (id) {
+          const all = JSON.parse(localStorage.getItem('ticketai_tickets') || '[]');
+          const idx = all.findIndex(t => t.id === id);
+          if (idx !== -1) {
+            all[idx].status  = 'resolved';
+            all[idx].updated = 'Just now';
+            localStorage.setItem('ticketai_tickets', JSON.stringify(all));
+            window.dispatchEvent(new CustomEvent('ticketsUpdated', { detail: { id, status: 'resolved' } }));
+          }
+        }
+      } catch(e) {}
+      showToast('🎉 Great! Ticket marked as resolved. Redirecting to dashboard…', 'success');
+      setTimeout(() => window.location.href = 'user-dashboard.html', 2000);
+    }
+
+    function requestHuman() {
+      const existing = document.getElementById('human-banner');
+      if (existing) return; // idempotent — don't add twice
+      const banner = document.createElement('div');
+      banner.id = 'human-banner';
+      banner.className = 'human-banner';
+      banner.innerHTML = `
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Request submitted. A human agent will contact you within the expected SLA.
+      `;
+      document.getElementById('solution-section').appendChild(banner);
+    }
+
+    function showToast(msg, type='info') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`; t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    init();
+  </script>
+</body>
+</html>

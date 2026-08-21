@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Ticket – TicketPilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar (reuse same structure) -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon" style="background:transparent;width:28px;height:28px;padding:0;">
+        <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="34" height="34" rx="9" fill="#1D9E75"/><path d="M23.5 10.5L10.5 16.5L16.5 19.5L19.5 25.5L23.5 10.5Z" fill="white"/><path d="M16.5 19.5L23.5 10.5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sidebar-brand-name">TicketPilot</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a href="user-dashboard.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="create-ticket.html" class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v6M7 10h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Create Ticket
+      </a>
+      <a href="my-tickets.html" class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h12M4 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        My Tickets
+      </a>
+      <span class="nav-section-label">Account</span>
+      <a href="profile.html" class="nav-item"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Profile</a>
+      <a href="settings.html" class="nav-item"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar">??</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Loading…</div>
+          <div class="sidebar-user-role">Customer</div>
+        </div>
+      </div>
+      <a href="profile.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;">Profile</a>
+      <a href="settings.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;">Settings</a>
+      <a href="#" style="display:flex;align-items:center;gap:8px;color:#F87171;font-size:.78rem;padding:5px 8px;border-radius:var(--radius);text-decoration:none;" onclick="window.logout(); return false;">Sign out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb">
+          <a href="user-dashboard.html" style="color:var(--text-muted)">Dashboard</a>
+          <span class="breadcrumb-sep">/</span>
+          <span class="topbar-title">Create Ticket</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme" onclick="window.toggleDarkMode()">
+          <span class="icon-sun"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.41 1.41M14.37 14.37l1.41 1.41M4.22 15.78l1.41-1.41M14.37 5.63l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <span class="icon-moon"><svg viewBox="0 0 20 20" fill="none"><path d="M17.5 12A7.5 7.5 0 018 2.5a7.5 7.5 0 100 15 7.5 7.5 0 009.5-5.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        </button>
+        <div class="avatar avatar-sm" onclick="location.href='profile.html'" style="cursor:pointer;">??</div>
+      </div>
+    </header>
+
+    <div class="page-body" style="max-width:780px;">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Create New Ticket</h2>
+          <p>Describe your issue and our AI will classify and route it automatically.</p>
+        </div>
+      </div>
+
+      <form id="create-form" onsubmit="submitTicket(event)">
+        <!-- Step indicator -->
+        <div style="display:flex;gap:0;margin-bottom:28px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;">
+          <div class="step-tab active" id="step-tab-1" style="flex:1;padding:12px 16px;text-align:center;font-size:.82rem;font-weight:600;background:var(--primary);color:#fff;">1. Your Issue</div>
+          <div class="step-tab" id="step-tab-2" style="flex:1;padding:12px 16px;text-align:center;font-size:.82rem;font-weight:600;color:var(--text-secondary);border-left:1px solid var(--border);">2. Details</div>
+          <div class="step-tab" id="step-tab-3" style="flex:1;padding:12px 16px;text-align:center;font-size:.82rem;font-weight:600;color:var(--text-secondary);border-left:1px solid var(--border);">3. Review & Submit</div>
+        </div>
+
+        <!-- Step 1 -->
+        <div id="step-1" class="card" style="margin-bottom:16px;">
+          <h3 style="margin-bottom:20px;">Tell us about your issue</h3>
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div class="form-group">
+              <label for="ct-dept">Department</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 6V5a2 2 0 014 0v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <select id="ct-dept">
+                  <option value="it">IT Support</option>
+                  <option value="network">Network Team</option>
+                  <option value="hr">Human Resources</option>
+                  <option value="finance">Finance</option>
+                  <option value="general">General Support</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ct-title">Ticket Title <span style="color:#EF4444">*</span></label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 20 20" fill="none"><path d="M4 6h12M4 10h8M4 14h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input type="text" id="ct-title" placeholder="Short summary of the issue…" required maxlength="120" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ct-desc">Description <span style="color:#EF4444">*</span></label>
+              <textarea id="ct-desc" rows="6" placeholder="Describe your issue in detail. Include what you were doing, any error messages you see, and what you've already tried…" required maxlength="3000"></textarea>
+              <span class="form-hint">More detail → better AI suggestion</span>
+            </div>
+            <div class="form-group">
+              <label>Category <span style="color:#94A3B8;font-weight:400">(AI will predict, you can adjust)</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <label class="cat-option selected" id="cat-network"><input type="radio" name="category" value="Network" checked onchange="selectCat(this)"/><span>📡 Network</span></label>
+                <label class="cat-option" id="cat-software"><input type="radio" name="category" value="Software" onchange="selectCat(this)"/><span>💻 Software</span></label>
+                <label class="cat-option" id="cat-hardware"><input type="radio" name="category" value="Hardware" onchange="selectCat(this)"/><span>🖨 Hardware</span></label>
+                <label class="cat-option" id="cat-account"><input type="radio" name="category" value="Account" onchange="selectCat(this)"/><span>🔑 Account</span></label>
+                <label class="cat-option" id="cat-payment"><input type="radio" name="category" value="Payment" onchange="selectCat(this)"/><span>💰 Payment</span></label>
+                <label class="cat-option" id="cat-hr"><input type="radio" name="category" value="HR" onchange="selectCat(this)"/><span>👥 HR</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div id="step-2" class="card" style="margin-bottom:16px;display:none;">
+          <h3 style="margin-bottom:20px;">Additional Details</h3>
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div class="form-group">
+              <label>Priority (Optional – AI will assess)</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <label class="pri-option" id="pri-low"><input type="radio" name="priority" value="low" onchange="selectPri(this)"/><span style="color:var(--priority-low-text)">🟢 Low</span></label>
+                <label class="pri-option" id="pri-medium"><input type="radio" name="priority" value="medium" onchange="selectPri(this)"/><span style="color:var(--priority-medium-text)">🔵 Medium</span></label>
+                <label class="pri-option selected" id="pri-high"><input type="radio" name="priority" value="high" checked onchange="selectPri(this)"/><span style="color:var(--priority-high-text)">🟠 High</span></label>
+                <label class="pri-option" id="pri-critical"><input type="radio" name="priority" value="critical" onchange="selectPri(this)"/><span style="color:var(--priority-critical-text)">🔴 Critical</span></label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ct-attach">Attachments <span style="color:#94A3B8;font-weight:400">(optional – screenshots, logs)</span></label>
+              <div style="border:2px dashed var(--border);border-radius:var(--radius-md);padding:28px;text-align:center;cursor:pointer;transition:var(--transition);background:var(--surface-2);" id="drop-zone" onclick="document.getElementById('ct-attach').click()">
+                <div style="font-size:2rem;margin-bottom:8px;">📎</div>
+                <p style="font-size:.875rem;color:var(--text-secondary);">Drop files here or <span style="color:var(--primary);font-weight:600;">click to browse</span></p>
+                <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">PNG, JPG, PDF, LOG up to 10MB</p>
+              </div>
+              <input type="file" id="ct-attach" multiple accept="image/*,.pdf,.log,.txt" style="display:none" onchange="handleFiles(this.files)" />
+              <div id="file-list" style="margin-top:8px;display:flex;flex-direction:column;gap:6px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Review -->
+        <div id="step-3" class="card" style="margin-bottom:16px;display:none;">
+          <h3 style="margin-bottom:20px;">Review Your Ticket</h3>
+          <div id="review-content" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+          <div class="ai-analysis" style="margin-top:20px;">
+            <div class="ai-analysis-header">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              AI Preview (predicted classification)
+            </div>
+            <div class="ai-badge-row" id="review-ai-badges"></div>
+            <p style="font-size:.78rem;color:var(--text-secondary);margin-top:8px;">Final classification will be confirmed after submission.</p>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+          <button type="button" class="btn btn-ghost" id="back-btn" style="display:none;" onclick="prevStep()">← Back</button>
+          <button type="button" class="btn btn-secondary" id="next-btn" onclick="nextStep()">Next →</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn" style="display:none;">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10l7-7 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Submit Ticket
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.cat-option, .pri-option {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  cursor: pointer; font-size: .82rem; font-weight: 500;
+  color: var(--text-secondary); transition: var(--transition);
+}
+.cat-option input[type="radio"], .pri-option input[type="radio"] { display: none; }
+.cat-option:hover, .pri-option:hover { border-color: var(--primary); color: var(--primary); }
+.cat-option.selected, .pri-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+.step-tab { cursor: default; }
+
+#drop-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+</style>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 3;
+
+// Initialise step state on first load so step-2/3 are hidden
+// and the tab + button visibility matches currentStep = 1.
+document.addEventListener('DOMContentLoaded', function () {
+  // Ensure user is authenticated (customers only)
+  const user = window.requireAuth ? window.requireAuth(['customer']) : null;
+  // Hydrate user card in sidebar
+  const avatarEls = document.querySelectorAll('.avatar');
+  if (user) {
+    const initials = user.name ? user.name.split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase() : '??';
+    avatarEls.forEach(el => { el.textContent = initials; });
+    const nameEls = document.querySelectorAll('.sidebar-user-name');
+    nameEls.forEach(el => { el.textContent = user.name || 'User'; });
+  }
+  updateSteps();
+});
+
+function selectCat(radio) {
+  document.querySelectorAll('.cat-option').forEach(el => el.classList.remove('selected'));
+  radio.closest('.cat-option').classList.add('selected');
+}
+function selectPri(radio) {
+  document.querySelectorAll('.pri-option').forEach(el => el.classList.remove('selected'));
+  radio.closest('.pri-option').classList.add('selected');
+}
+
+function nextStep() {
+  if (currentStep === 1) {
+    const title = document.getElementById('ct-title').value.trim();
+    const desc = document.getElementById('ct-desc').value.trim();
+    if (!title || !desc) { showToast('Please fill in title and description.', 'error'); return; }
+  }
+  if (currentStep < totalSteps) { currentStep++; updateSteps(); }
+}
+function prevStep() { if (currentStep > 1) { currentStep--; updateSteps(); } }
+
+function updateSteps() {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('step-' + i);
+    const tab = document.getElementById('step-tab-' + i);
+    if (i === currentStep) {
+      el.style.display = '';
+      tab.style.background = 'var(--primary)';
+      tab.style.color = '#fff';
+    } else {
+      el.style.display = 'none';
+      if (i < currentStep) { tab.style.background = '#F0FDF4'; tab.style.color = '#15803D'; }
+      else { tab.style.background = ''; tab.style.color = 'var(--text-secondary)'; }
+    }
+  });
+  document.getElementById('back-btn').style.display = currentStep > 1 ? '' : 'none';
+  document.getElementById('next-btn').style.display = currentStep < totalSteps ? '' : 'none';
+  document.getElementById('submit-btn').style.display = currentStep === totalSteps ? '' : 'none';
+
+  if (currentStep === 3) buildReview();
+}
+
+function buildReview() {
+  const title = document.getElementById('ct-title').value;
+  const desc = document.getElementById('ct-desc').value;
+  const dept = document.getElementById('ct-dept').value;
+  const cat = document.querySelector('input[name="category"]:checked')?.value || 'Network';
+  const pri = document.querySelector('input[name="priority"]:checked')?.value || 'high';
+
+  const deptMap = { it:'IT Support', network:'Network Team', hr:'Human Resources', finance:'Finance', general:'General Support' };
+  document.getElementById('review-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:130px 1fr;gap:10px 16px;font-size:.875rem;">
+      <span style="color:var(--text-muted);font-weight:600;">Title</span><span style="font-weight:600;">${title}</span>
+      <span style="color:var(--text-muted);font-weight:600;">Department</span><span>${deptMap[dept]||dept}</span>
+      <span style="color:var(--text-muted);font-weight:600;">Category</span><span><span class="badge badge-category">${cat}</span></span>
+      <span style="color:var(--text-muted);font-weight:600;">Priority</span><span><span class="badge badge-${pri}">${cap(pri)}</span></span>
+      <span style="color:var(--text-muted);font-weight:600;">Description</span><span style="color:var(--text-secondary);line-height:1.5;">${desc.substring(0,200)}${desc.length>200?'…':''}</span>
+    </div>`;
+
+  const sentiment = detectSentiment(desc);
+  const sentEmoji = {positive:'😊 Positive', neutral:'😐 Neutral', negative:'😟 Negative'};
+  document.getElementById('review-ai-badges').innerHTML = `
+    <span class="badge badge-category">🏷 ${cat}</span>
+    <span class="badge badge-${pri}">${cap(pri)}</span>
+    <span class="badge badge-sentiment-${sentiment}">${sentEmoji[sentiment]}</span>`;
+}
+
+function detectSentiment(desc) {
+  const t = desc.toLowerCase();
+  if (/frustrated|angry|terrible|worst|unacceptable|urgent/.test(t)) return 'negative';
+  if (/thanks|great|good|appreciate|helpful/.test(t)) return 'positive';
+  return 'neutral';
+}
+function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function handleFiles(files) {
+  const list = document.getElementById('file-list');
+  list.innerHTML = Array.from(files).map(f => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);font-size:.82rem;">
+      📄 <span style="flex:1;font-weight:500;">${f.name}</span>
+      <span style="color:var(--text-muted);">${(f.size/1024).toFixed(0)} KB</span>
+    </div>`).join('');
+}
+
+function normalizeTicketStatus(status) {
+  const normalized = String(status || 'inprogress').toLowerCase().trim();
+  return ['open', 'inprogress', 'waiting', 'resolved', 'closed'].includes(normalized) ? normalized : 'inprogress';
+}
+
+async function submitTicket(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.classList.add('btn-loading'); btn.disabled = true;
+
+  const title = document.getElementById('ct-title').value.trim();
+  const desc  = document.getElementById('ct-desc').value.trim();
+
+  if (!title || !desc) {
+    if (window.showToast) window.showToast('Please fill in title and description.', 'error');
+    btn.classList.remove('btn-loading'); btn.disabled = false;
+    return;
+  }
+
+  try {
+    const data = await window.apiRequest('/tickets', 'POST', {
+      title,
+      description: desc,
+      attachments: [],
+    });
+
+    if (data && data.ticket) {
+      if (window.showToast) window.showToast('Ticket submitted! AI is analysing your issue…', 'success');
+      // Redirect to ticket detail so customer sees the real AI analysis
+      setTimeout(() => {
+        window.location.href = `ticket-detail.html?id=${encodeURIComponent(data.ticket._id)}&created=true`;
+      }, 700);
+    }
+  } catch (error) {
+    if (window.showToast) window.showToast(error.message || 'Could not create ticket.', 'error');
+  } finally {
+    btn.classList.remove('btn-loading'); btn.disabled = false;
+  }
+}
+
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`; t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(), 3500);
+}
+</script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+initChatWidget();
+</script>
+</body>
+</html>
