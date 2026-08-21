@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+
+*.db
+*.sqlite
+*.sqlite3
+
+pulsedesk_data.json
+
+.env
+.env.local
+
+.vscode/
+OllamaSetup.exe
