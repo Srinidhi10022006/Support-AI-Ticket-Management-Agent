@@ -1,0 +1,13 @@
+# Environment files
+.env*
+backend/src/main/resources/application.properties
+
+# Node
+node_modules/
+dist/
+
+# Java
+target/
+
+# IDE
+.vscode/
